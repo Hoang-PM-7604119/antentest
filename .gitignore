@@ -1,0 +1,16 @@
+# Large raw dataset (30MB Excel file)
+data1.xlsx
+
+# Python & Environment
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# OS specific
+.DS_Store
+Thumbs.db

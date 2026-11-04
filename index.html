@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Thiết Kế Ăng-ten Machine Learning</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+    <!-- Header -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="brand">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        <circle cx="12" cy="3" r="2" fill="currentColor"></circle>
+                        <circle cx="12" cy="21" r="2" fill="currentColor"></circle>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="nav-title">Antenna ML Inverse Design</h1>
+                    <p class="nav-subtitle">Dự đoán 4 thông số hình học từ 2 thông số đặc tính mục tiêu</p>
+                </div>
+            </div>
+            
+            <div class="nav-actions">
+                <span class="badge badge-pulse">
+                    <span class="pulse-dot"></span>
+                    614,656 Mẫu Huấn Luyện
+                </span>
+                <button id="themeToggle" class="btn btn-icon" title="Chuyển chế độ sáng/tối">
+                    <svg id="themeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Overview Banner -->
+        <section class="banner-card">
+            <div class="banner-content">
+                <h2>Mô Hình Học Máy Dự Đoán Kích Thước Ăng-ten (Inverse Problem)</h2>
+                <p>Hệ thống sử dụng các thuật toán <strong>Machine Learning từ đơn giản đến nâng cao</strong> (Hồi quy tuyến tính, Ridge, Đa thức bậc 2, Cây quyết định, Mạng nơ-ron MLP, KNN) được huấn luyện từ toàn bộ bộ dữ liệu mô phỏng điện từ (614,656 cấu hình). Bạn chỉ cần nhập 2 thông số mục tiêu (Cột 5 & 6) để tính toán ngay lập tức 4 kích thước ăng-ten tối ưu (Cột 1, 2, 3, 4).</p>
+            </div>
+            <div class="banner-stats">
+                <div class="stat-item">
+                    <span class="stat-number">6</span>
+                    <span class="stat-label">Mô hình ML</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">&lt; 1 ms</span>
+                    <span class="stat-label">Thời gian tính</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">91.2%</span>
+                    <span class="stat-label">Độ chính xác kiểm tra</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Workspace Grid -->
+        <div class="workspace-grid">
+            <!-- Left Panel: Input Controls -->
+            <section class="card panel-input">
+                <div class="card-header">
+                    <div class="header-icon">1</div>
+                    <div>
+                        <h3 class="card-title">Nhập 2 Thông Số Mục Tiêu</h3>
+                        <p class="card-desc">Cột 5 & Cột 6 từ file dữ liệu (data1.xlsx)</p>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Presets -->
+                    <div class="form-group">
+                        <label class="form-label">Chọn nhanh cấu hình mẫu (Presets):</label>
+                        <div class="preset-buttons">
+                            <button class="btn btn-preset active" data-v1="-15.0" data-v2="-5.0">Cộng hưởng chuẩn (-15, -5)</button>
+                            <button class="btn btn-preset" data-v1="-25.0" data-v2="-8.0">Cộng hưởng sâu (-25, -8)</button>
+                            <button class="btn btn-preset" data-v1="-8.0" data-v2="-2.0">Băng rộng (-8, -2)</button>
+                            <button class="btn btn-preset" data-v1="-35.0" data-v2="-12.0">Tối ưu cực đại (-35, -12)</button>
+                        </div>
+                    </div>
+
+                    <!-- Target 1 (Column 5) -->
+                    <div class="control-box">
+                        <div class="control-header">
+                            <label for="inputV1" class="control-title">
+                                <strong>Thông số mục tiêu 1</strong> (Cột 5 - Thường là S₁₁ / Return Loss)
+                            </label>
+                            <span class="value-badge" id="v1Badge">-15.00 dB</span>
+                        </div>
+                        <div class="input-row">
+                            <input type="range" id="sliderV1" min="-55.0" max="-0.01" step="0.05" value="-15.0">
+                            <input type="number" id="inputV1" min="-55.8" max="0.0" step="0.01" value="-15.0" class="number-input">
+                        </div>
+                        <div class="range-labels">
+                            <span>Min: -55.8 dB</span>
+                            <span>Trung bình: -1.91 dB</span>
+                            <span>Max: ~0.0 dB</span>
+                        </div>
+                    </div>
+
+                    <!-- Target 2 (Column 6) -->
+                    <div class="control-box">
+                        <div class="control-header">
+                            <label for="inputV2" class="control-title">
+                                <strong>Thông số mục tiêu 2</strong> (Cột 6 - Thường là Gain / Bức xạ / S₂₁)
+                            </label>
+                            <span class="value-badge" id="v2Badge">-5.00 dB</span>
+                        </div>
+                        <div class="input-row">
+                            <input type="range" id="sliderV2" min="-47.0" max="-0.01" step="0.05" value="-5.0">
+                            <input type="number" id="inputV2" min="-47.8" max="0.0" step="0.01" value="-5.0" class="number-input">
+                        </div>
+                        <div class="range-labels">
+                            <span>Min: -47.8 dB</span>
+                            <span>Trung bình: -0.79 dB</span>
+                            <span>Max: ~0.0 dB</span>
+                        </div>
+                    </div>
+
+                    <!-- Model Selector Tabs -->
+                    <div class="form-group model-selection-section">
+                        <label class="form-label">Chọn thuật toán Học Máy (Machine Learning Model):</label>
+                        <div class="model-tabs" id="modelTabs">
+                            <button class="tab-btn active" data-model="NeuralNetwork">
+                                <span class="tab-title">Mạng Nơ-ron (MLP)</span>
+                                <span class="tab-sub">Deep Learning</span>
+                            </button>
+                            <button class="tab-btn" data-model="PolynomialRegression">
+                                <span class="tab-title">Hồi quy Đa thức</span>
+                                <span class="tab-sub">Bậc 2 (Poly)</span>
+                            </button>
+                            <button class="tab-btn" data-model="DecisionTree">
+                                <span class="tab-title">Cây quyết định</span>
+                                <span class="tab-sub">Decision Tree</span>
+                            </button>
+                            <button class="tab-btn" data-model="LinearRegression">
+                                <span class="tab-title">Tuyến tính</span>
+                                <span class="tab-sub">Linear Reg</span>
+                            </button>
+                            <button class="tab-btn" data-model="RidgeRegression">
+                                <span class="tab-title">Hồi quy Ridge</span>
+                                <span class="tab-sub">L2 Regularized</span>
+                            </button>
+                            <button class="tab-btn" data-model="KNN">
+                                <span class="tab-title">KNN / Khớp mẫu</span>
+                                <span class="tab-sub">Nearest Neighbor</span>
+                            </button>
+                        </div>
+                        <p class="model-info-note" id="modelDescription">
+                            Mạng Deep Feedforward MLP (3 tầng ẩn: 64-64-32 nơ-ron, hàm kích hoạt ReLU) mô hình hóa mối quan hệ phi tuyến phức tạp.
+                        </p>
+                    </div>
+
+                    <!-- Rounding Option -->
+                    <div class="toggle-group">
+                        <label class="switch-container">
+                            <input type="checkbox" id="snapStep" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                        <label for="snapStep" class="switch-label">Làm tròn về bội số 5 mm (theo bước quét chế tạo thực tế 5, 10, ..., 140 mm)</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Prediction Results -->
+            <section class="card panel-results">
+                <div class="card-header">
+                    <div class="header-icon">2</div>
+                    <div>
+                        <h3 class="card-title">Kết Quả Dự Đoán 4 Thông Số Hình Học</h3>
+                        <p class="card-desc">Kích thước ăng-ten tương ứng (Cột 1, 2, 3, 4)</p>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- 4 Output Cards Grid -->
+                    <div class="outputs-grid">
+                        <!-- Dimension 1 -->
+                        <div class="output-card card-d1">
+                            <div class="output-header">
+                                <span class="dim-tag">CỘT 1</span>
+                                <span class="dim-name">Kích thước 1 (d₁)</span>
+                            </div>
+                            <div class="output-value">
+                                <span class="val-num" id="valD1">75.0</span>
+                                <span class="val-unit">mm</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="barD1" style="width: 50%;"></div>
+                            </div>
+                            <div class="dim-footer">
+                                <span>Min: 5 mm</span>
+                                <span>Max: 140 mm</span>
+                            </div>
+                        </div>
+
+                        <!-- Dimension 2 -->
+                        <div class="output-card card-d2">
+                            <div class="output-header">
+                                <span class="dim-tag">CỘT 2</span>
+                                <span class="dim-name">Kích thước 2 (d₂)</span>
+                            </div>
+                            <div class="output-value">
+                                <span class="val-num" id="valD2">70.0</span>
+                                <span class="val-unit">mm</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="barD2" style="width: 48%;"></div>
+                            </div>
+                            <div class="dim-footer">
+                                <span>Min: 5 mm</span>
+                                <span>Max: 140 mm</span>
+                            </div>
+                        </div>
+
+                        <!-- Dimension 3 -->
+                        <div class="output-card card-d3">
+                            <div class="output-header">
+                                <span class="dim-tag">CỘT 3</span>
+                                <span class="dim-name">Kích thước 3 (d₃)</span>
+                            </div>
+                            <div class="output-value">
+                                <span class="val-num" id="valD3">85.0</span>
+                                <span class="val-unit">mm</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="barD3" style="width: 59%;"></div>
+                            </div>
+                            <div class="dim-footer">
+                                <span>Min: 5 mm</span>
+                                <span>Max: 140 mm</span>
+                            </div>
+                        </div>
+
+                        <!-- Dimension 4 -->
+                        <div class="output-card card-d4">
+                            <div class="output-header">
+                                <span class="dim-tag">CỘT 4</span>
+                                <span class="dim-name">Kích thước 4 (d₄)</span>
+                            </div>
+                            <div class="output-value">
+                                <span class="val-num" id="valD4">60.0</span>
+                                <span class="val-unit">mm</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="barD4" style="width: 41%;"></div>
+                            </div>
+                            <div class="dim-footer">
+                                <span>Min: 5 mm</span>
+                                <span>Max: 140 mm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Digital Twin Forward Verification -->
+                    <div class="verification-box">
+                        <div class="verif-header">
+                            <div class="verif-title">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                <strong>Kiểm thử ngược Digital Twin (Forward Simulator Verification)</strong>
+                            </div>
+                            <span class="badge badge-success" id="verifStatusBadge">Khớp tốt</span>
+                        </div>
+                        <p class="verif-desc">Mô phỏng lại bằng mạng Digital Twin (R² = 91.2%) khi áp dụng 4 kích thước dự đoán trên:</p>
+                        
+                        <div class="verif-grid">
+                            <div class="verif-item">
+                                <span class="verif-label">Target 1 mong muốn:</span>
+                                <span class="verif-val" id="expV1">-15.00 dB</span>
+                            </div>
+                            <div class="verif-item">
+                                <span class="verif-label">Mô phỏng đạt được:</span>
+                                <span class="verif-val highlight" id="simV1">-14.82 dB</span>
+                            </div>
+                            <div class="verif-item">
+                                <span class="verif-label">Độ lệch (|Δv₁|):</span>
+                                <span class="verif-val error-val" id="deltaV1">0.18 dB</span>
+                            </div>
+
+                            <div class="verif-item">
+                                <span class="verif-label">Target 2 mong muốn:</span>
+                                <span class="verif-val" id="expV2">-5.00 dB</span>
+                            </div>
+                            <div class="verif-item">
+                                <span class="verif-label">Mô phỏng đạt được:</span>
+                                <span class="verif-val highlight" id="simV2">-4.91 dB</span>
+                            </div>
+                            <div class="verif-item">
+                                <span class="verif-label">Độ lệch (|Δv₂|):</span>
+                                <span class="verif-val error-val" id="deltaV2">0.09 dB</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="export-actions">
+                        <button id="copyBtn" class="btn btn-secondary">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            Sao chép 4 kích thước
+                        </button>
+                        <button id="exportCsvBtn" class="btn btn-secondary">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Xuất cấu hình CSV
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Antenna Geometry Visualizer -->
+        <section class="card visualizer-section">
+            <div class="card-header">
+                <div class="header-icon">3</div>
+                <div>
+                    <h3 class="card-title">Mô Hình Trực Quan Hóa Hình Học Ăng-ten (CAD Visualizer)</h3>
+                    <p class="card-desc">Sơ đồ hình học thay đổi tỉ lệ theo thời gian thực theo 4 thông số d₁, d₂, d₃, d₄</p>
+                </div>
+            </div>
+
+            <div class="card-body visualizer-body">
+                <div class="cad-container">
+                    <svg id="antennaCadSvg" viewBox="0 0 800 400" class="cad-svg">
+                        <!-- Background Grid -->
+                        <defs>
+                            <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+                                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--border-subtle)" stroke-width="0.8"/>
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#gridPattern)" />
+
+                        <!-- Substrate Ground Layer -->
+                        <rect id="cadSubstrate" x="100" y="50" width="600" height="300" rx="8" class="cad-substrate" />
+
+                        <!-- Antenna Main Patch (d1, d2) -->
+                        <rect id="cadPatch" x="250" y="80" width="300" height="180" rx="4" class="cad-patch" />
+
+                        <!-- Feed line / Stub (d3, d4) -->
+                        <rect id="cadFeed" x="380" y="260" width="40" height="90" class="cad-feed" />
+
+                        <!-- Slot or Secondary Feature -->
+                        <rect id="cadSlot" x="350" y="140" width="100" height="20" rx="2" class="cad-slot" />
+
+                        <!-- Dimension Markers -->
+                        <!-- Dimension 1 (Width) -->
+                        <g id="dimD1Group">
+                            <line x1="250" y1="65" x2="550" y2="65" class="cad-dim-line" />
+                            <circle cx="250" cy="65" r="3" class="cad-dim-dot" />
+                            <circle cx="550" cy="65" r="3" class="cad-dim-dot" />
+                            <text id="cadTextD1" x="400" y="58" class="cad-dim-text">d₁ = 75 mm</text>
+                        </g>
+
+                        <!-- Dimension 2 (Height) -->
+                        <g id="dimD2Group">
+                            <line x1="565" y1="80" x2="565" y2="260" class="cad-dim-line" />
+                            <circle cx="565" cy="80" r="3" class="cad-dim-dot" />
+                            <circle cx="565" cy="260" r="3" class="cad-dim-dot" />
+                            <text id="cadTextD2" x="575" y="175" class="cad-dim-text">d₂ = 70 mm</text>
+                        </g>
+
+                        <!-- Dimension 3 (Feed Stub Length) -->
+                        <g id="dimD3Group">
+                            <line x1="365" y1="260" x2="365" y2="350" class="cad-dim-line" />
+                            <circle cx="365" cy="260" r="3" class="cad-dim-dot" />
+                            <circle cx="365" cy="350" r="3" class="cad-dim-dot" />
+                            <text id="cadTextD3" x="310" y="310" class="cad-dim-text">d₃ = 85 mm</text>
+                        </g>
+
+                        <!-- Dimension 4 (Slot/Offset) -->
+                        <g id="dimD4Group">
+                            <line x1="350" y1="130" x2="450" y2="130" class="cad-dim-line" />
+                            <circle cx="350" cy="130" r="3" class="cad-dim-dot" />
+                            <circle cx="450" cy="130" r="3" class="cad-dim-dot" />
+                            <text id="cadTextD4" x="400" y="122" class="cad-dim-text">d₄ = 60 mm</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="cad-legend">
+                    <span class="legend-item"><span class="legend-color patch-color"></span> Miếng bức xạ (Patch) [d₁, d₂]</span>
+                    <span class="legend-item"><span class="legend-color feed-color"></span> Đường tiếp điện (Feed Stub) [d₃]</span>
+                    <span class="legend-item"><span class="legend-color slot-color"></span> Khe phối hợp / Định hình (Slot) [d₄]</span>
+                    <span class="legend-item"><span class="legend-color sub-color"></span> Tấm điện môi nền (Substrate)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Model Comparison Table -->
+        <section class="card comparison-section">
+            <div class="card-header">
+                <div class="header-icon">4</div>
+                <div class="header-split">
+                    <div>
+                        <h3 class="card-title">Bảng So Sánh Tất Cả Các Thuật Toán Học Máy</h3>
+                        <p class="card-desc">Đối chiếu kết quả dự đoán đồng thời giữa 6 mô hình cho 2 thông số mục tiêu hiện tại</p>
+                    </div>
+                    <button id="refreshTableBtn" class="btn btn-sm btn-primary">Cập nhật so sánh</button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Thuật Toán ML</th>
+                                <th>Độ Phức Tạp</th>
+                                <th>MAE Huấn Luyện</th>
+                                <th>Hệ Số R²</th>
+                                <th>Dự Đoán d₁</th>
+                                <th>Dự Đoán d₂</th>
+                                <th>Dự Đoán d₃</th>
+                                <th>Dự Đoán d₄</th>
+                                <th>Lệch Mô Phỏng (|Δv|)</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                            <!-- Populated dynamically by app.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Theoretical & Methodological Details -->
+        <section class="card details-section">
+            <div class="card-header">
+                <div class="header-icon">5</div>
+                <div>
+                    <h3 class="card-title">Giải Thích Lý Thuyết & Phương Pháp Thiết Kế Ngược</h3>
+                    <p class="card-desc">Bản chất bài toán Inverse Design và cách chọn mô hình tối ưu</p>
+                </div>
+            </div>
+            <div class="card-body doc-content">
+                <div class="doc-grid">
+                    <div class="doc-card">
+                        <h4>1. Đặc điểm bài toán Inverse Problem (2 → 4)</h4>
+                        <p>Từ 2 thông số đặc tính đầu ra (Cột 5 & 6) suy ngược ra 4 kích thước hình học (Cột 1, 2, 3, 4) là bài toán <strong>nghịch đảo thiếu điều kiện (underdetermined inverse problem)</strong>. Trong điện từ học, nhiều cấu hình hình học khác nhau có thể mang lại đáp ứng tần số và hệ số phản xạ tương đương.</p>
+                    </div>
+                    <div class="doc-card">
+                        <h4>2. Mô hình đơn giản (Linear, Ridge, Poly)</h4>
+                        <p><strong>Hồi quy tuyến tính & Ridge:</strong> Cho nghiệm trực quan dạng giải tích $\mathbf{d} = \mathbf{W}\mathbf{v} + \mathbf{b}$, tốc độ tính cực nhanh (&lt; 0.01 ms).<br>
+                        <strong>Đa thức bậc 2:</strong> Bổ sung các số hạng phi tuyến $v_1^2, v_2^2, v_1 v_2$ giúp cải thiện độ chính xác mà vẫn giữ được độ đơn giản.</p>
+                    </div>
+                    <div class="doc-card">
+                        <h4>3. Mô hình Cây quyết định & Mạng Nơ-ron</h4>
+                        <p><strong>Cây quyết định:</strong> Phân chia không gian tìm kiếm thành các vùng ngưỡng nhị phân độc lập.<br>
+                        <strong>Mạng Nơ-ron (MLP):</strong> Học bề mặt đa tạp phi tuyến đa chiều giữa không gian mục tiêu và không gian kích thước hình học.</p>
+                    </div>
+                    <div class="doc-card">
+                        <h4>4. KNN & Digital Twin Verification</h4>
+                        <p><strong>KNN / DB Match:</strong> Tìm kiếm cấu hình thực tế đã được mô phỏng trong tập 614,656 mẫu có khoảng cách ngắn nhất tới mục tiêu.<br>
+                        <strong>Forward Digital Twin:</strong> Bộ mô phỏng xuôi với độ chính xác R² = 91.2% dùng để nghiệm thu kết quả ngay trên trình duyệt.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <p>© 2026 Antenna ML Studio. Phát triển từ bộ dữ liệu mô phỏng điện từ <code>data1.xlsx</code>.</p>
+            <p>Triển khai tự động hoàn toàn tĩnh trên <strong>GitHub Pages</strong> với công nghệ WebAssembly & Modern JavaScript.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="models_data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
