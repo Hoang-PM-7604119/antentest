@@ -38,9 +38,40 @@ assert(Array.isArray(data.samples), 'samples must be an array');
 assert(data.samples.length > 1000, `Expected > 1000 samples, got ${data.samples.length}`);
 console.log(`✓ Test 4 Passed: KNN database contains ${data.samples.length} verified simulation points`);
 
-// 5. Test Linear & Ridge & Lasso inference
+// 4b. Test KNN inference with k=1, k=3, k=5
 const testV1 = -15.0;
 const testV2 = -5.0;
+
+function testKNN(samples, v1, v2, k) {
+    const dists = samples.map(s => {
+        const d1 = s.v1 - v1;
+        const d2 = s.v2 - v2;
+        return {
+            dist: Math.sqrt(d1 * d1 + d2 * d2),
+            y: [s.d1, s.d2, s.d3, s.d4]
+        };
+    });
+    dists.sort((a, b) => a.dist - b.dist);
+    if (k === 1) return dists[0].y;
+    let sumW = 0, sumY = [0, 0, 0, 0];
+    for (let i = 0; i < k; i++) {
+        const w = 1.0 / (dists[i].dist + 1e-6);
+        sumW += w;
+        for (let j = 0; j < 4; j++) sumY[j] += dists[i].y[j] * w;
+    }
+    return sumY.map(v => v / sumW);
+}
+const knn1D = testKNN(data.samples, testV1, testV2, 1);
+const knn3D = testKNN(data.samples, testV1, testV2, 3);
+const knn5D = testKNN(data.samples, testV1, testV2, 5);
+assert(knn1D.length === 4 && knn3D.length === 4 && knn5D.length === 4);
+console.log('✓ Test 4b Passed: KNN (k=1, 3, 5) outputs valid dimensions:', {
+    'k=1': knn1D,
+    'k=3': knn3D.map(v => v.toFixed(1)),
+    'k=5': knn5D.map(v => v.toFixed(1))
+});
+
+// 5. Test Linear & Ridge & Lasso inference
 
 function testLinear(m, v1, v2) {
     const d = [];

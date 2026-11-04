@@ -18,12 +18,28 @@ document.addEventListener('DOMContentLoaded', () => {
             sub: '0.45·MLP + 0.35·Poly + 0.20·KNN'
         },
         {
-            id: 'KNN',
-            name: 'KNN Khớp mẫu',
+            id: 'KNN_1',
+            name: 'KNN Khớp mẫu (k=1)',
             icon: '⭐',
-            rank: 'Sát nhất',
+            rank: 'Sát nhất (1-NN)',
             rankClass: 'rank-strong',
-            sub: 'Khớp 3 mẫu lân cận (k=3)'
+            sub: 'Khớp 1 mẫu thực tế gần nhất'
+        },
+        {
+            id: 'KNN',
+            name: 'KNN Nội suy (k=3)',
+            icon: '⭐',
+            rank: 'Cân bằng (3-NN)',
+            rankClass: 'rank-strong',
+            sub: 'Nội suy 3 mẫu lân cận'
+        },
+        {
+            id: 'KNN_5',
+            name: 'KNN Nội suy (k=5)',
+            icon: '⭐',
+            rank: 'Làm mượt (5-NN)',
+            rankClass: 'rank-strong',
+            sub: 'Nội suy 5 mẫu lân cận'
         },
         {
             id: 'NeuralNetwork',
@@ -222,6 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         dists.sort((a, b) => a.dist - b.dist);
 
+        if (k === 1) {
+            return dists[0].y.map(v => clampOutput(v));
+        }
+
         let sumW = 0;
         let sumY = [0, 0, 0, 0];
         for (let i = 0; i < Math.min(k, dists.length); i++) {
@@ -265,12 +285,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
     }
 
-    // Compute predictions for ALL 8 models
+    // Compute predictions for ALL models
     function computeAllModels(x1, x2) {
         const results = {};
         const predictors = {
             Ensemble: () => predictEnsemble(x1, x2),
+            KNN_1: () => predictKNN(x1, x2, 1),
             KNN: () => predictKNN(x1, x2, 3),
+            KNN_5: () => predictKNN(x1, x2, 5),
             NeuralNetwork: () => predictMLP(x1, x2),
             PolynomialRegression: () => predictPolynomial(x1, x2),
             LinearRegression: () => predictLinear(x1, x2),
@@ -449,11 +471,26 @@ h⁽²⁾ = ReLU(W⁽²⁾·h⁽¹⁾ + b⁽²⁾)     # Tầng ẩn 2: 64 nơ-r
 h⁽³⁾ = ReLU(W⁽³⁾·h⁽²⁾ + b⁽³⁾)     # Tầng ẩn 3: 32 nơ-ron
 y    = W⁽⁴⁾·h⁽³⁾ + b⁽⁴⁾           # Tầng đầu ra 4 nơ-ron:
 --> y₁ = ${y[0].toFixed(1)},  y₂ = ${y[1].toFixed(1)},  y₃ = ${y[2].toFixed(1)},  y₄ = ${y[3].toFixed(1)}`;
+        } else if (state.activeModel === 'KNN_1') {
+            terminalTitle.textContent = 'knn_k1_nearest_neighbor.py';
+            txt = `# Khớp mẫu thực nghiệm 1-NN (Nearest Neighbor k=1 trên 12,000 mẫu đại diện từ 1,000,000 dòng dữ liệu):
+# Khoảng cách Euclidean: D(x, x_i) = √[(x₁ - x₁,i)² + (x₂ - x₂,i)²]
+# Tìm điểm thực nghiệm i* = argmin D(x, x_i) sát nhất với x₁ = ${x1.toFixed(2)}, x₂ = ${x2.toFixed(2)}:
+--> y₁ = ${y[0].toFixed(1)}, y₂ = ${y[1].toFixed(1)}, y₃ = ${y[2].toFixed(1)}, y₄ = ${y[3].toFixed(1)}
+(Cấu hình lấy chính xác 1 điểm mẫu thực tế trong dữ liệu, bảo toàn tính khả thi vật lý tuyệt đối)`;
         } else if (state.activeModel === 'KNN') {
-            terminalTitle.textContent = 'knn_matching_eval.py';
-            txt = `# Khớp mẫu thực tế (K-Nearest Neighbors trên cơ sở dữ liệu mô phỏng):
-D(x, x_k) = √[(x₁ - x₁,k)² + (x₂ - x₂,k)²]
-Đã tìm thấy k=3 điểm dữ liệu thực tế gần nhất, nội suy nghịch đảo khoảng cách:
+            terminalTitle.textContent = 'knn_k3_interpolation.py';
+            txt = `# Khớp mẫu & Nội suy K-NN (k=3 mẫu lân cận, cân bằng sai số):
+# Khoảng cách: D_i = √[(x₁ - x₁,i)² + (x₂ - x₂,i)²]
+# Trọng số nghịch đảo khoảng cách: w_i = 1 / (D_i + 1e-6)
+# y = (∑ w_i · y_i) / (∑ w_i) với 3 điểm gần nhất:
+--> y₁ = ${y[0].toFixed(1)}, y₂ = ${y[1].toFixed(1)}, y₃ = ${y[2].toFixed(1)}, y₄ = ${y[3].toFixed(1)}`;
+        } else if (state.activeModel === 'KNN_5') {
+            terminalTitle.textContent = 'knn_k5_interpolation.py';
+            txt = `# Khớp mẫu & Nội suy K-NN (k=5 mẫu lân cận, làm mượt đa điểm):
+# Khoảng cách: D_i = √[(x₁ - x₁,i)² + (x₂ - x₂,i)²]
+# Trọng số nghịch đảo khoảng cách: w_i = 1 / (D_i + 1e-6)
+# y = (∑ w_i · y_i) / (∑ w_i) với 5 điểm gần nhất:
 --> y₁ = ${y[0].toFixed(1)}, y₂ = ${y[1].toFixed(1)}, y₃ = ${y[2].toFixed(1)}, y₄ = ${y[3].toFixed(1)}`;
         } else if (state.activeModel === 'DecisionTree') {
             terminalTitle.textContent = 'decision_tree_eval.py';
