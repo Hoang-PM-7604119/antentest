@@ -1,4 +1,4 @@
-// Pure Multi-Output ML Predictor Logic (2 Inputs -> 4 Outputs)
+// Multi-Output ML Predictor & All-Algorithm Comparison Logic
 document.addEventListener('DOMContentLoaded', () => {
     if (!window.ANTENNA_MODELS_DATA) {
         console.error('Không tìm thấy dữ liệu mô hình window.ANTENNA_MODELS_DATA');
@@ -7,14 +7,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const { models, forward_simulator, samples } = window.ANTENNA_MODELS_DATA;
 
+    // Model configuration metadata
+    const MODEL_META = [
+        {
+            id: 'Ensemble',
+            name: 'Stacking Ensemble',
+            icon: '🏆',
+            rank: 'Khuyên dùng',
+            rankClass: 'rank-top',
+            sub: '0.45·MLP + 0.35·Poly + 0.20·KNN'
+        },
+        {
+            id: 'KNN',
+            name: 'KNN Khớp mẫu',
+            icon: '⭐',
+            rank: 'Sát nhất',
+            rankClass: 'rank-strong',
+            sub: 'Khớp 3 mẫu lân cận (k=3)'
+        },
+        {
+            id: 'NeuralNetwork',
+            name: 'Mạng Nơ-ron (MLP)',
+            icon: '🧠',
+            rank: 'Deep Learning',
+            rankClass: 'rank-strong',
+            sub: '3 tầng ẩn 64-64-32 ReLU'
+        },
+        {
+            id: 'PolynomialRegression',
+            name: 'Hồi quy Đa thức bậc 2',
+            icon: '📐',
+            rank: 'Phi tuyến',
+            rankClass: 'rank-std',
+            sub: 'Mặt cong đa thức bậc 2'
+        },
+        {
+            id: 'LinearRegression',
+            name: 'Hồi quy Tuyến tính',
+            icon: '⚡',
+            rank: 'Cơ bản',
+            rankClass: 'rank-std',
+            sub: 'y = W·x + b'
+        },
+        {
+            id: 'LassoRegression',
+            name: 'Hồi quy Lasso (L1)',
+            icon: '⚡',
+            rank: 'Thưa hóa L1',
+            rankClass: 'rank-std',
+            sub: 'Regularization L1'
+        },
+        {
+            id: 'RidgeRegression',
+            name: 'Hồi quy Ridge (L2)',
+            icon: '⚡',
+            rank: 'Làm mượt L2',
+            rankClass: 'rank-std',
+            sub: 'Regularization L2'
+        },
+        {
+            id: 'DecisionTree',
+            name: 'Cây quyết định',
+            icon: '🌳',
+            rank: 'Cây rời rạc',
+            rankClass: 'rank-std',
+            sub: 'Độ sâu tối đa 8'
+        }
+    ];
+
     // State
     const state = {
         x1: -15.0,
         x2: -5.0,
-        currentModel: 'Ensemble',
+        activeModel: 'Ensemble',
         snapToGrid: true,
-        predictions: { y1: 75.0, y2: 70.0, y3: 85.0, y4: 60.0 },
-        verification: { simX1: -14.8, simX2: -4.9, err1: 0.2, err2: 0.1 }
+        allPredictions: {}
     };
 
     // DOM Elements
@@ -26,9 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputX2 = document.getElementById('inputX2');
     const x2Badge = document.getElementById('x2Badge');
 
-    const modelSelect = document.getElementById('modelSelect');
     const snapStep = document.getElementById('snapStep');
+    const resetBtn = document.getElementById('resetBtn');
+    const comparisonTableBody = document.getElementById('comparisonTableBody');
 
+    const activeModelTitle = document.getElementById('activeModelTitle');
     const valY1 = document.getElementById('valY1');
     const valY2 = document.getElementById('valY2');
     const valY3 = document.getElementById('valY3');
@@ -39,14 +108,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const barY3 = document.getElementById('barY3');
     const barY4 = document.getElementById('barY4');
 
+    const targetX1 = document.getElementById('targetX1');
+    const targetX2 = document.getElementById('targetX2');
     const simX1 = document.getElementById('simX1');
     const simX2 = document.getElementById('simX2');
     const deltaX1 = document.getElementById('deltaX1');
     const deltaX2 = document.getElementById('deltaX2');
     const statusBadge = document.getElementById('statusBadge');
 
+    const terminalTitle = document.getElementById('terminalTitle');
     const formulaCode = document.getElementById('formulaCode');
-    const copyBtn = document.getElementById('copyBtn');
+    const copyActiveBtn = document.getElementById('copyActiveBtn');
+    const copyFormulaBtn = document.getElementById('copyFormulaBtn');
     const exportCsvBtn = document.getElementById('exportCsvBtn');
 
     // Clamp & Round helper
@@ -191,39 +264,97 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
     }
 
-    // Run selected model
-    function runPrediction(modelName, x1, x2) {
-        switch (modelName) {
-            case 'LinearRegression': return predictLinear(x1, x2);
-            case 'RidgeRegression': return predictRidge(x1, x2);
-            case 'LassoRegression': return predictLasso(x1, x2);
-            case 'PolynomialRegression': return predictPolynomial(x1, x2);
-            case 'DecisionTree': return predictDecisionTree(x1, x2);
-            case 'KNN': return predictKNN(x1, x2, 3);
-            case 'NeuralNetwork': return predictMLP(x1, x2);
-            case 'Ensemble':
-            default:
-                return predictEnsemble(x1, x2);
-        }
+    // Compute predictions for ALL 8 models
+    function computeAllModels(x1, x2) {
+        const results = {};
+        const predictors = {
+            Ensemble: () => predictEnsemble(x1, x2),
+            KNN: () => predictKNN(x1, x2, 3),
+            NeuralNetwork: () => predictMLP(x1, x2),
+            PolynomialRegression: () => predictPolynomial(x1, x2),
+            LinearRegression: () => predictLinear(x1, x2),
+            LassoRegression: () => predictLasso(x1, x2),
+            RidgeRegression: () => predictRidge(x1, x2),
+            DecisionTree: () => predictDecisionTree(x1, x2)
+        };
+
+        MODEL_META.forEach(meta => {
+            const y = predictors[meta.id]();
+            const [sim1, sim2] = simulateForward(y[0], y[1], y[2], y[3]);
+            const err1 = Math.abs(sim1 - x1);
+            const err2 = Math.abs(sim2 - x2);
+            const meanErr = (err1 + err2) / 2;
+            results[meta.id] = {
+                y,
+                sim: [sim1, sim2],
+                err: [err1, err2],
+                meanErr
+            };
+        });
+
+        return results;
     }
 
-    // Update everything
-    function updateAll() {
-        const x1 = state.x1;
-        const x2 = state.x2;
+    // Render comparison table
+    function renderComparisonTable(results) {
+        let html = '';
+        MODEL_META.forEach(meta => {
+            const r = results[meta.id];
+            const isActive = (meta.id === state.activeModel);
+            const y = r.y;
+            const sim = r.sim;
+            const meanErr = r.meanErr;
 
-        const y = runPrediction(state.currentModel, x1, x2);
-        state.predictions = { y1: y[0], y2: y[1], y3: y[2], y4: y[3] };
+            let errClass = 'err-good';
+            if (meanErr < 0.6) errClass = 'err-excellent';
+            else if (meanErr > 2.0) errClass = 'err-fair';
 
-        const [simX1_val, simX2_val] = simulateForward(y[0], y[1], y[2], y[3]);
-        const err1 = Math.abs(simX1_val - x1);
-        const err2 = Math.abs(simX2_val - x2);
-        state.verification = { simX1: simX1_val, simX2: simX2_val, err1, err2 };
+            const activeClass = isActive ? 'active-row' : '';
 
-        // Update UI
-        x1Badge.textContent = x1.toFixed(2);
-        x2Badge.textContent = x2.toFixed(2);
+            html += `
+            <tr class="${activeClass}" data-model="${meta.id}">
+                <td class="col-algo">
+                    <div class="algo-cell">
+                        <span>${meta.icon}</span>
+                        <div>
+                            <span class="algo-name">${meta.name}</span>
+                            <div style="font-size: 0.7rem; color: var(--text-dim);">${meta.sub}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="col-dim"><span class="dim-tag tag-y1">${y[0].toFixed(state.snapToGrid ? 0 : 1)}</span></td>
+                <td class="col-dim"><span class="dim-tag tag-y2">${y[1].toFixed(state.snapToGrid ? 0 : 1)}</span></td>
+                <td class="col-dim"><span class="dim-tag tag-y3">${y[2].toFixed(state.snapToGrid ? 0 : 1)}</span></td>
+                <td class="col-dim"><span class="dim-tag tag-y4">${y[3].toFixed(state.snapToGrid ? 0 : 1)}</span></td>
+                <td class="col-sim"><span class="sim-val">${sim[0].toFixed(2)}, ${sim[1].toFixed(2)}</span></td>
+                <td class="col-err"><span class="err-badge ${errClass}">±${meanErr.toFixed(2)}</span></td>
+                <td class="col-rating"><span class="rank-badge ${meta.rankClass}">${meta.rank}</span></td>
+            </tr>`;
+        });
 
+        comparisonTableBody.innerHTML = html;
+
+        // Attach click listeners to rows
+        comparisonTableBody.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('click', () => {
+                const modelId = row.getAttribute('data-model');
+                if (modelId && state.activeModel !== modelId) {
+                    state.activeModel = modelId;
+                    updateUI();
+                }
+            });
+        });
+    }
+
+    // Update active model UI details
+    function updateActiveModelDetails(results) {
+        const activeRes = results[state.activeModel];
+        if (!activeRes) return;
+
+        const meta = MODEL_META.find(m => m.id === state.activeModel) || MODEL_META[0];
+        activeModelTitle.textContent = `${meta.icon} ${meta.name}`;
+
+        const y = activeRes.y;
         valY1.textContent = y[0].toFixed(state.snapToGrid ? 0 : 1);
         valY2.textContent = y[1].toFixed(state.snapToGrid ? 0 : 1);
         valY3.textContent = y[2].toFixed(state.snapToGrid ? 0 : 1);
@@ -234,78 +365,123 @@ document.addEventListener('DOMContentLoaded', () => {
         barY3.style.width = `${((y[2] - 5) / 135) * 100}%`;
         barY4.style.width = `${((y[3] - 5) / 135) * 100}%`;
 
-        simX1.textContent = simX1_val.toFixed(2);
-        simX2.textContent = simX2_val.toFixed(2);
-        deltaX1.textContent = err1.toFixed(2);
-        deltaX2.textContent = err2.toFixed(2);
+        // Verification banner
+        targetX1.textContent = state.x1.toFixed(2);
+        targetX2.textContent = state.x2.toFixed(2);
+        simX1.textContent = activeRes.sim[0].toFixed(2);
+        simX2.textContent = activeRes.sim[1].toFixed(2);
+        deltaX1.textContent = activeRes.err[0].toFixed(2);
+        deltaX2.textContent = activeRes.err[1].toFixed(2);
 
-        const avgErr = (err1 + err2) / 2;
-        if (avgErr < 0.5) {
-            statusBadge.textContent = 'Rất sát (Lệch < 0.5)';
+        const avgErr = activeRes.meanErr;
+        if (avgErr < 0.6) {
+            statusBadge.textContent = 'Rất sát (Lệch < 0.6)';
             statusBadge.style.color = '#059669';
-        } else if (avgErr < 1.5) {
-            statusBadge.textContent = 'Khớp tốt (Lệch < 1.5)';
-            statusBadge.style.color = '#0284c7';
+            statusBadge.style.background = 'rgba(16, 185, 129, 0.12)';
+        } else if (avgErr < 1.6) {
+            statusBadge.textContent = 'Khớp tốt (Lệch < 1.6)';
+            statusBadge.style.color = '#2563eb';
+            statusBadge.style.background = 'rgba(37, 99, 235, 0.1)';
         } else {
             statusBadge.textContent = `Lệch trung bình: ${avgErr.toFixed(2)}`;
             statusBadge.style.color = '#d97706';
+            statusBadge.style.background = 'rgba(217, 119, 6, 0.1)';
         }
 
         renderFormula();
     }
 
+    // Render formula for active model
     function renderFormula() {
         const x1 = state.x1;
         const x2 = state.x2;
-        const { y1, y2, y3, y4 } = state.predictions;
+        const activeRes = state.allPredictions[state.activeModel];
+        if (!activeRes) return;
+        const y = activeRes.y;
         let txt = '';
 
-        if (state.currentModel === 'LinearRegression') {
+        if (state.activeModel === 'LinearRegression') {
             const m = models.LinearRegression;
-            txt = `Hồi quy Tuyến tính: y = W · x + b (Thay số với x₁ = ${x1.toFixed(2)}, x₂ = ${x2.toFixed(2)}):
-y₁ = ${m.coef[0][0].toFixed(4)}·(${x1}) + (${m.coef[0][1].toFixed(4)})·(${x2}) + ${m.intercept[0].toFixed(4)} = ${y1.toFixed(1)}
-y₂ = ${m.coef[1][0].toFixed(4)}·(${x1}) + (${m.coef[1][1].toFixed(4)})·(${x2}) + ${m.intercept[1].toFixed(4)} = ${y2.toFixed(1)}
-y₃ = ${m.coef[2][0].toFixed(4)}·(${x1}) + (${m.coef[2][1].toFixed(4)})·(${x2}) + ${m.intercept[2].toFixed(4)} = ${y3.toFixed(1)}
-y₄ = ${m.coef[3][0].toFixed(4)}·(${x1}) + (${m.coef[3][1].toFixed(4)})·(${x2}) + ${m.intercept[3].toFixed(4)} = ${y4.toFixed(1)}`;
-        } else if (state.currentModel === 'LassoRegression') {
+            terminalTitle.textContent = 'linear_regression_eval.py';
+            txt = `# Hồi quy Tuyến tính: y = W · x + b (Thay số với x₁ = ${x1.toFixed(2)}, x₂ = ${x2.toFixed(2)}):
+y₁ = ${m.coef[0][0].toFixed(4)}·(${x1}) + (${m.coef[0][1].toFixed(4)})·(${x2}) + ${m.intercept[0].toFixed(4)} = ${y[0].toFixed(1)}
+y₂ = ${m.coef[1][0].toFixed(4)}·(${x1}) + (${m.coef[1][1].toFixed(4)})·(${x2}) + ${m.intercept[1].toFixed(4)} = ${y[1].toFixed(1)}
+y₃ = ${m.coef[2][0].toFixed(4)}·(${x1}) + (${m.coef[2][1].toFixed(4)})·(${x2}) + ${m.intercept[2].toFixed(4)} = ${y[2].toFixed(1)}
+y₄ = ${m.coef[3][0].toFixed(4)}·(${x1}) + (${m.coef[3][1].toFixed(4)})·(${x2}) + ${m.intercept[3].toFixed(4)} = ${y[3].toFixed(1)}`;
+        } else if (state.activeModel === 'LassoRegression') {
             const m = models.LassoRegression;
-            txt = `Hồi quy Lasso (L1 Regularization):
-y₁ = ${m.coef[0][0].toFixed(4)}·(${x1}) + (${m.coef[0][1].toFixed(4)})·(${x2}) + ${m.intercept[0].toFixed(4)} = ${y1.toFixed(1)}
-y₂ = ${m.coef[1][0].toFixed(4)}·(${x1}) + (${m.coef[1][1].toFixed(4)})·(${x2}) + ${m.intercept[1].toFixed(4)} = ${y2.toFixed(1)}
-y₃ = ${m.coef[2][0].toFixed(4)}·(${x1}) + (${m.coef[2][1].toFixed(4)})·(${x2}) + ${m.intercept[2].toFixed(4)} = ${y3.toFixed(1)}
-y₄ = ${m.coef[3][0].toFixed(4)}·(${x1}) + (${m.coef[3][1].toFixed(4)})·(${x2}) + ${m.intercept[3].toFixed(4)} = ${y4.toFixed(1)}`;
-        } else if (state.currentModel === 'PolynomialRegression') {
-            txt = `Hồi quy Đa thức bậc 2: y_i = c₀ + c₁·x₁ + c₂·x₂ + c₃·x₁² + c₄·(x₁·x₂) + c₅·x₂²
-y₁ = 75.40 + 3.64·x₁ - 3.78·x₂ + 0.16·x₁² - 0.33·x₁x₂ - 0.17·x₂² = ${y1.toFixed(1)}
-y₂ = 73.81 - 1.97·x₁ + 6.78·x₂ - 0.10·x₁² + 0.47·x₁x₂ + 0.25·x₂² = ${y2.toFixed(1)}
-y₃ = 62.13 - 5.20·x₁ - 5.33·x₂ - 0.21·x₁² - 0.05·x₁x₂ - 0.38·x₂² = ${y3.toFixed(1)}
-y₄ = 53.77 - 6.97·x₁ - 12.88·x₂ - 0.20·x₁² - 0.46·x₁x₂ - 0.51·x₂² = ${y4.toFixed(1)}`;
-        } else if (state.currentModel === 'Ensemble') {
-            txt = `Mô hình Tổ Hợp Tối Ưu (Stacking Ensemble):
-y = 0.45 · y(MLP) + 0.35 · y(Poly) + 0.20 · y(KNN)
---> Kết quả: y₁ = ${y1.toFixed(1)},  y₂ = ${y2.toFixed(1)},  y₃ = ${y3.toFixed(1)},  y₄ = ${y4.toFixed(1)}`;
-        } else if (state.currentModel === 'NeuralNetwork') {
-            txt = `Mạng Nơ-ron Nhân Tạo Feedforward (3 tầng ẩn 64-64-32 nơ-ron, ReLU):
-h⁽¹⁾ = ReLU(W⁽¹⁾·x + b⁽¹⁾)
-h⁽²⁾ = ReLU(W⁽²⁾·h⁽¹⁾ + b⁽²⁾)
-h⁽³⁾ = ReLU(W⁽³⁾·h⁽²⁾ + b⁽³⁾)
-y = W⁽⁴⁾·h⁽³⁾ + b⁽⁴⁾  -->  y₁ = ${y1.toFixed(1)},  y₂ = ${y2.toFixed(1)},  y₃ = ${y3.toFixed(1)},  y₄ = ${y4.toFixed(1)}`;
-        } else if (state.currentModel === 'KNN') {
-            txt = `Khớp mẫu thực tế (Nearest Neighbors trên 614,656 mẫu):
+            terminalTitle.textContent = 'lasso_regression_eval.py';
+            txt = `# Hồi quy Lasso (L1 Regularization):
+y₁ = ${m.coef[0][0].toFixed(4)}·(${x1}) + (${m.coef[0][1].toFixed(4)})·(${x2}) + ${m.intercept[0].toFixed(4)} = ${y[0].toFixed(1)}
+y₂ = ${m.coef[1][0].toFixed(4)}·(${x1}) + (${m.coef[1][1].toFixed(4)})·(${x2}) + ${m.intercept[1].toFixed(4)} = ${y[1].toFixed(1)}
+y₃ = ${m.coef[2][0].toFixed(4)}·(${x1}) + (${m.coef[2][1].toFixed(4)})·(${x2}) + ${m.intercept[2].toFixed(4)} = ${y[2].toFixed(1)}
+y₄ = ${m.coef[3][0].toFixed(4)}·(${x1}) + (${m.coef[3][1].toFixed(4)})·(${x2}) + ${m.intercept[3].toFixed(4)} = ${y[3].toFixed(1)}`;
+        } else if (state.activeModel === 'RidgeRegression') {
+            const m = models.RidgeRegression;
+            terminalTitle.textContent = 'ridge_regression_eval.py';
+            txt = `# Hồi quy Ridge (L2 Regularization):
+y₁ = ${m.coef[0][0].toFixed(4)}·(${x1}) + (${m.coef[0][1].toFixed(4)})·(${x2}) + ${m.intercept[0].toFixed(4)} = ${y[0].toFixed(1)}
+y₂ = ${m.coef[1][0].toFixed(4)}·(${x1}) + (${m.coef[1][1].toFixed(4)})·(${x2}) + ${m.intercept[1].toFixed(4)} = ${y[1].toFixed(1)}
+y₃ = ${m.coef[2][0].toFixed(4)}·(${x1}) + (${m.coef[2][1].toFixed(4)})·(${x2}) + ${m.intercept[2].toFixed(4)} = ${y[2].toFixed(1)}
+y₄ = ${m.coef[3][0].toFixed(4)}·(${x1}) + (${m.coef[3][1].toFixed(4)})·(${x2}) + ${m.intercept[3].toFixed(4)} = ${y[3].toFixed(1)}`;
+        } else if (state.activeModel === 'PolynomialRegression') {
+            terminalTitle.textContent = 'polynomial_surface_eval.py';
+            txt = `# Hồi quy Đa thức bậc 2: y_i = c₀ + c₁·x₁ + c₂·x₂ + c₃·x₁² + c₄·(x₁·x₂) + c₅·x₂²
+y₁ = 75.40 + 3.64·x₁ - 3.78·x₂ + 0.16·x₁² - 0.33·x₁x₂ - 0.17·x₂² = ${y[0].toFixed(1)}
+y₂ = 73.81 - 1.97·x₁ + 6.78·x₂ - 0.10·x₁² + 0.47·x₁x₂ + 0.25·x₂² = ${y[1].toFixed(1)}
+y₃ = 62.13 - 5.20·x₁ - 5.33·x₂ - 0.21·x₁² - 0.05·x₁x₂ - 0.38·x₂² = ${y[2].toFixed(1)}
+y₄ = 53.77 - 6.97·x₁ - 12.88·x₂ - 0.20·x₁² - 0.46·x₁x₂ - 0.51·x₂² = ${y[3].toFixed(1)}`;
+        } else if (state.activeModel === 'Ensemble') {
+            terminalTitle.textContent = 'stacking_ensemble_eval.py';
+            txt = `# Mô hình Tổ Hợp Tối Ưu (Stacking Ensemble Blending):
+# y = 0.45 · y(MLP) + 0.35 · y(Poly) + 0.20 · y(KNN)
+y₁ = 0.45·y₁(MLP) + 0.35·y₁(Poly) + 0.20·y₁(KNN) = ${y[0].toFixed(1)}
+y₂ = 0.45·y₂(MLP) + 0.35·y₂(Poly) + 0.20·y₂(KNN) = ${y[1].toFixed(1)}
+y₃ = 0.45·y₃(MLP) + 0.35·y₃(Poly) + 0.20·y₃(KNN) = ${y[2].toFixed(1)}
+y₄ = 0.45·y₄(MLP) + 0.35·y₄(Poly) + 0.20·y₄(KNN) = ${y[3].toFixed(1)}`;
+        } else if (state.activeModel === 'NeuralNetwork') {
+            terminalTitle.textContent = 'mlp_neural_network_eval.py';
+            txt = `# Mạng Nơ-ron Nhân Tạo Feedforward (3 tầng ẩn 64-64-32 nơ-ron, hàm kích hoạt ReLU):
+h⁽¹⁾ = ReLU(W⁽¹⁾·x + b⁽¹⁾)       # Tầng ẩn 1: 64 nơ-ron
+h⁽²⁾ = ReLU(W⁽²⁾·h⁽¹⁾ + b⁽²⁾)     # Tầng ẩn 2: 64 nơ-ron
+h⁽³⁾ = ReLU(W⁽³⁾·h⁽²⁾ + b⁽³⁾)     # Tầng ẩn 3: 32 nơ-ron
+y    = W⁽⁴⁾·h⁽³⁾ + b⁽⁴⁾           # Tầng đầu ra 4 nơ-ron:
+--> y₁ = ${y[0].toFixed(1)},  y₂ = ${y[1].toFixed(1)},  y₃ = ${y[2].toFixed(1)},  y₄ = ${y[3].toFixed(1)}`;
+        } else if (state.activeModel === 'KNN') {
+            terminalTitle.textContent = 'knn_matching_eval.py';
+            txt = `# Khớp mẫu thực tế (K-Nearest Neighbors trên cơ sở dữ liệu mô phỏng):
 D(x, x_k) = √[(x₁ - x₁,k)² + (x₂ - x₂,k)²]
-Đã tìm thấy 3 điểm dữ liệu thực tế gần nhất: y₁ = ${y1.toFixed(1)}, y₂ = ${y2.toFixed(1)}, y₃ = ${y3.toFixed(1)}, y₄ = ${y4.toFixed(1)}`;
+Đã tìm thấy k=3 điểm dữ liệu thực tế gần nhất, nội suy nghịch đảo khoảng cách:
+--> y₁ = ${y[0].toFixed(1)}, y₂ = ${y[1].toFixed(1)}, y₃ = ${y[2].toFixed(1)}, y₄ = ${y[3].toFixed(1)}`;
+        } else if (state.activeModel === 'DecisionTree') {
+            terminalTitle.textContent = 'decision_tree_eval.py';
+            txt = `# Cây Quyết Định (Decision Tree Regressor - Depth 8):
+Duyệt qua cây quyết định từ nút gốc với điều kiện x₁ <= ngưỡng và x₂ <= ngưỡng:
+--> Nút lá dự đoán 4 đầu ra:
+y₁ = ${y[0].toFixed(1)}, y₂ = ${y[1].toFixed(1)}, y₃ = ${y[2].toFixed(1)}, y₄ = ${y[3].toFixed(1)}`;
         } else {
-            txt = `Mô hình: ${state.currentModel}
-y₁ = ${y1.toFixed(1)}, y₂ = ${y2.toFixed(1)}, y₃ = ${y3.toFixed(1)}, y₄ = ${y4.toFixed(1)}`;
+            terminalTitle.textContent = 'model_eval.py';
+            txt = `Mô hình: ${state.activeModel}
+y₁ = ${y[0].toFixed(1)}, y₂ = ${y[1].toFixed(1)}, y₃ = ${y[2].toFixed(1)}, y₄ = ${y[3].toFixed(1)}`;
         }
         formulaCode.textContent = txt;
+    }
+
+    // Full UI Update
+    function updateUI() {
+        x1Badge.textContent = state.x1.toFixed(2);
+        x2Badge.textContent = state.x2.toFixed(2);
+
+        state.allPredictions = computeAllModels(state.x1, state.x2);
+        renderComparisonTable(state.allPredictions);
+        updateActiveModelDetails(state.allPredictions);
     }
 
     // Event listeners
     sliderX1.addEventListener('input', (e) => {
         state.x1 = parseFloat(e.target.value);
         inputX1.value = state.x1.toFixed(1);
-        updateAll();
+        updateUI();
     });
 
     inputX1.addEventListener('change', (e) => {
@@ -315,13 +491,13 @@ y₁ = ${y1.toFixed(1)}, y₂ = ${y2.toFixed(1)}, y₃ = ${y3.toFixed(1)}, y₄ 
         state.x1 = v;
         sliderX1.value = v;
         e.target.value = v.toFixed(1);
-        updateAll();
+        updateUI();
     });
 
     sliderX2.addEventListener('input', (e) => {
         state.x2 = parseFloat(e.target.value);
         inputX2.value = state.x2.toFixed(1);
-        updateAll();
+        updateUI();
     });
 
     inputX2.addEventListener('change', (e) => {
@@ -331,51 +507,77 @@ y₁ = ${y1.toFixed(1)}, y₂ = ${y2.toFixed(1)}, y₃ = ${y3.toFixed(1)}, y₄ 
         state.x2 = v;
         sliderX2.value = v;
         e.target.value = v.toFixed(1);
-        updateAll();
-    });
-
-    modelSelect.addEventListener('change', (e) => {
-        state.currentModel = e.target.value;
-        updateAll();
+        updateUI();
     });
 
     snapStep.addEventListener('change', (e) => {
         state.snapToGrid = e.target.checked;
-        updateAll();
+        updateUI();
     });
 
-    copyBtn.addEventListener('click', () => {
-        const text = `y1 = ${state.predictions.y1}\ny2 = ${state.predictions.y2}\ny3 = ${state.predictions.y3}\ny4 = ${state.predictions.y4}\n(Input: x1=${state.x1}, x2=${state.x2}, Model: ${state.currentModel})`;
+    resetBtn.addEventListener('click', () => {
+        state.x1 = -15.0;
+        state.x2 = -5.0;
+        sliderX1.value = -15.0;
+        inputX1.value = (-15.0).toFixed(1);
+        sliderX2.value = -5.0;
+        inputX2.value = (-5.0).toFixed(1);
+        state.activeModel = 'Ensemble';
+        updateUI();
+    });
+
+    copyActiveBtn.addEventListener('click', () => {
+        const res = state.allPredictions[state.activeModel];
+        if (!res) return;
+        const text = `y1 = ${res.y[0]}\ny2 = ${res.y[1]}\ny3 = ${res.y[2]}\ny4 = ${res.y[3]}\n(Model: ${state.activeModel}, Input: x1=${state.x1}, x2=${state.x2})`;
         navigator.clipboard.writeText(text).then(() => {
-            const orig = copyBtn.innerHTML;
-            copyBtn.innerHTML = `✓ Đã sao chép!`;
-            setTimeout(() => { copyBtn.innerHTML = orig; }, 1800);
+            const orig = copyActiveBtn.innerHTML;
+            copyActiveBtn.innerHTML = `✓ Đã sao chép!`;
+            setTimeout(() => { copyActiveBtn.innerHTML = orig; }, 1600);
+        });
+    });
+
+    copyFormulaBtn.addEventListener('click', () => {
+        const text = formulaCode.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const orig = copyFormulaBtn.innerHTML;
+            copyFormulaBtn.innerHTML = `✓ Đã chép công thức!`;
+            setTimeout(() => { copyFormulaBtn.innerHTML = orig; }, 1600);
         });
     });
 
     exportCsvBtn.addEventListener('click', () => {
         const rows = [
-            ['Name', 'Value', 'Column'],
-            ['Input_1 (x1)', state.x1, 'Cột 5'],
-            ['Input_2 (x2)', state.x2, 'Cột 6'],
-            ['Model', state.currentModel, 'Thuật toán'],
-            ['Output_1 (y1)', state.predictions.y1, 'Cột 1'],
-            ['Output_2 (y2)', state.predictions.y2, 'Cột 2'],
-            ['Output_3 (y3)', state.predictions.y3, 'Cột 3'],
-            ['Output_4 (y4)', state.predictions.y4, 'Cột 4'],
-            ['Simulated_x1', state.verification.simX1.toFixed(2), 'Kiểm tra x1'],
-            ['Simulated_x2', state.verification.simX2.toFixed(2), 'Kiểm tra x2'],
-            ['Delta_x1', state.verification.err1.toFixed(2), 'Độ lệch x1'],
-            ['Delta_x2', state.verification.err2.toFixed(2), 'Độ lệch x2']
+            ['Model_ID', 'Model_Name', 'Input_x1', 'Input_x2', 'Output_y1', 'Output_y2', 'Output_y3', 'Output_y4', 'Simulated_x1', 'Simulated_x2', 'Mean_Delta_x', 'Rating']
         ];
+
+        MODEL_META.forEach(meta => {
+            const r = state.allPredictions[meta.id];
+            rows.push([
+                meta.id,
+                `"${meta.name}"`,
+                state.x1,
+                state.x2,
+                r.y[0],
+                r.y[1],
+                r.y[2],
+                r.y[3],
+                r.sim[0].toFixed(3),
+                r.sim[1].toFixed(3),
+                r.meanErr.toFixed(3),
+                `"${meta.rank}"`
+            ]);
+        });
+
         const csv = 'data:text/csv;charset=utf-8,' + rows.map(r => r.join(',')).join('\n');
         const link = document.createElement('a');
         link.setAttribute('href', encodeURI(csv));
-        link.setAttribute('download', `prediction_x1_${state.x1}_x2_${state.x2}.csv`);
+        link.setAttribute('download', `all_models_comparison_x1_${state.x1}_x2_${state.x2}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     });
 
-    updateAll();
+    // Initial render
+    updateUI();
 });

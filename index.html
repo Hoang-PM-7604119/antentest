@@ -3,157 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dự Đoán 2 Đầu Vào → 4 Đầu Ra (Machine Learning)</title>
+    <title>So Sánh Tất Cả Thuật Toán: 2 Đầu Vào → 4 Đầu Ra (Machine Learning Studio)</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="theme-light">
+    <!-- Ambient Background Glows -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
     <div class="app-container">
-        <!-- Title Header -->
+        <!-- Top Banner Header -->
         <header class="app-header">
-            <h1>Mô Hình Dự Đoán: 2 Đầu Vào → 4 Đầu Ra</h1>
-            <p>Nhập giá trị Cột 5 và Cột 6 để tự động dự đoán Cột 1, Cột 2, Cột 3 và Cột 4</p>
+            <div class="badge-pill">
+                <span class="badge-dot"></span>
+                <span class="badge-text">Machine Learning Studio • 614,656 Mẫu Huấn Luyện</span>
+            </div>
+            <h1 class="header-title">So Sánh Tất Cả Thuật Toán: 2 Đầu Vào <span class="arrow-accent">→</span> 4 Đầu Ra</h1>
+            <p class="header-desc">Nhập 1 lần giá trị Cột 5 (x₁) & Cột 6 (x₂) — Hệ thống tính toán và hiển thị đồng thời kết quả của cả 8 mô hình Machine Learning để tiện so sánh trực tiếp</p>
         </header>
 
-        <!-- Main Workspace -->
+        <!-- Main Workspace Card -->
         <main class="app-card">
             <!-- 1. Input Section -->
             <section class="card-section">
                 <div class="section-heading">
-                    <span class="step-num">1</span>
-                    <h2>Nhập 2 Biến Đầu Vào</h2>
+                    <div class="heading-left">
+                        <span class="step-num">1</span>
+                        <div>
+                            <h2>Nhập 2 Biến Đầu Vào</h2>
+                            <p class="section-sub">Nhập một lần để tính toán tức thời cho tất cả các thuật toán</p>
+                        </div>
+                    </div>
+                    <button id="resetBtn" class="btn-text" title="Đặt lại về giá trị mặc định">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                            <path d="M3 3v5h5"></path>
+                        </svg>
+                        <span>Đặt lại mặc định</span>
+                    </button>
                 </div>
 
                 <div class="inputs-grid">
                     <!-- Input 1 -->
-                    <div class="input-item">
-                        <div class="input-label-row">
-                            <label for="inputX1"><strong>Đầu vào 1 (Cột 5 - x₁)</strong></label>
+                    <div class="input-card">
+                        <div class="input-card-header">
+                            <div class="input-title">
+                                <span class="input-icon-box icon-x1">x₁</span>
+                                <div>
+                                    <label for="inputX1" class="input-label">Đầu vào 1</label>
+                                    <span class="input-sub">Cột 5 trong tập dữ liệu</span>
+                                </div>
+                            </div>
                             <span class="value-tag" id="x1Badge">-15.00</span>
                         </div>
-                        <div class="control-box">
+
+                        <div class="slider-container">
                             <input type="range" id="sliderX1" min="-55.0" max="0.0" step="0.1" value="-15.0" class="slider-range">
-                            <input type="number" id="inputX1" min="-55.8" max="0.0" step="0.1" value="-15.0" class="number-box">
                         </div>
-                        <div class="hint-text">Miền giá trị: -55.84 đến 0.00</div>
+
+                        <div class="input-footer">
+                            <div class="range-bounds">
+                                <span>Min: -55.84</span>
+                                <span>Max: 0.00</span>
+                            </div>
+                            <div class="number-wrapper">
+                                <input type="number" id="inputX1" min="-55.8" max="0.0" step="0.1" value="-15.0" class="number-box">
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Input 2 -->
-                    <div class="input-item">
-                        <div class="input-label-row">
-                            <label for="inputX2"><strong>Đầu vào 2 (Cột 6 - x₂)</strong></label>
+                    <div class="input-card">
+                        <div class="input-card-header">
+                            <div class="input-title">
+                                <span class="input-icon-box icon-x2">x₂</span>
+                                <div>
+                                    <label for="inputX2" class="input-label">Đầu vào 2</label>
+                                    <span class="input-sub">Cột 6 trong tập dữ liệu</span>
+                                </div>
+                            </div>
                             <span class="value-tag" id="x2Badge">-5.00</span>
                         </div>
-                        <div class="control-box">
+
+                        <div class="slider-container">
                             <input type="range" id="sliderX2" min="-47.0" max="0.0" step="0.1" value="-5.0" class="slider-range">
-                            <input type="number" id="inputX2" min="-47.8" max="0.0" step="0.1" value="-5.0" class="number-box">
                         </div>
-                        <div class="hint-text">Miền giá trị: -47.79 đến 0.00</div>
+
+                        <div class="input-footer">
+                            <div class="range-bounds">
+                                <span>Min: -47.79</span>
+                                <span>Max: 0.00</span>
+                            </div>
+                            <div class="number-wrapper">
+                                <input type="number" id="inputX2" min="-47.8" max="0.0" step="0.1" value="-5.0" class="number-box">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Model Selector -->
-                <div class="model-row">
-                    <label for="modelSelect"><strong>Mô hình Machine Learning:</strong></label>
-                    <select id="modelSelect" class="model-dropdown">
-                        <option value="Ensemble" selected>🏆 Ensemble Blending (Tốt nhất - Kết hợp tối ưu)</option>
-                        <option value="KNN">⭐ KNN / Khớp mẫu thực tế (Sát nhất, sai số &lt; 0.005)</option>
-                        <option value="NeuralNetwork">🧠 Mạng Nơ-ron nhân tạo (MLP Deep Learning)</option>
-                        <option value="PolynomialRegression">📐 Hồi quy Đa thức bậc 2 (Poly Surface)</option>
-                        <option value="LinearRegression">⚡ Hồi quy Tuyến tính (Linear y = W·x + b)</option>
-                        <option value="LassoRegression">⚡ Hồi quy Lasso (L1 Regularization)</option>
-                        <option value="RidgeRegression">⚡ Hồi quy Ridge (L2 Regularization)</option>
-                        <option value="DecisionTree">🌳 Cây quyết định (Decision Tree)</option>
-                    </select>
-                </div>
-
-                <div class="options-row">
-                    <label class="checkbox-label">
+                <!-- Global Option Strip -->
+                <div class="options-strip">
+                    <label class="custom-toggle">
                         <input type="checkbox" id="snapStep" checked>
-                        Làm tròn bước 5 (theo bước lưới 5, 10, ..., 140 của dữ liệu gốc)
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Làm tròn bước 5 (theo bước lưới 5, 10, ..., 140 của dữ liệu gốc <code>data1.xlsx</code>)</span>
                     </label>
+                    <div class="export-actions">
+                        <button id="exportCsvBtn" class="btn-secondary btn-sm">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            <span>Xuất toàn bộ 8 mô hình ra CSV</span>
+                        </button>
+                    </div>
                 </div>
             </section>
 
-            <!-- 2. Output Section -->
-            <section class="card-section results-section">
+            <!-- 2. All Models Comparison Table Section -->
+            <section class="card-section table-section">
                 <div class="section-heading">
-                    <span class="step-num">2</span>
-                    <h2>Kết Quả 4 Biến Đầu Ra Dự Đoán</h2>
+                    <div class="heading-left">
+                        <span class="step-num step-num-green">2</span>
+                        <div>
+                            <h2>Bảng So Sánh Trực Tiếp Tất Cả 8 Thuật Toán</h2>
+                            <p class="section-sub">Nhấp vào từng dòng để xem công thức chi tiết và chọn làm mô hình nổi bật</p>
+                        </div>
+                    </div>
                 </div>
 
+                <div class="table-container">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th class="col-algo">Thuật toán</th>
+                                <th class="col-dim">Cột 1 (y₁)</th>
+                                <th class="col-dim">Cột 2 (y₂)</th>
+                                <th class="col-dim">Cột 3 (y₃)</th>
+                                <th class="col-dim">Cột 4 (y₄)</th>
+                                <th class="col-sim">Kiểm thử ngược (x₁ˢⁱᵐ, x₂ˢⁱᵐ)</th>
+                                <th class="col-err">Độ lệch (Δx)</th>
+                                <th class="col-rating">Đánh giá</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                            <!-- Populated dynamically via app.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 3. Active Model Highlight & Formulas -->
+            <section class="card-section active-model-section">
+                <div class="section-heading">
+                    <div class="heading-left">
+                        <span class="step-num step-num-purple">3</span>
+                        <div>
+                            <h2>Chi Tiết Mô Hình Đang Chọn: <span id="activeModelTitle" class="highlight-title">Ensemble Blending</span></h2>
+                            <p class="section-sub">Xem trực quan 4 đầu ra và phương trình giải tích tương ứng</p>
+                        </div>
+                    </div>
+                    <div class="active-model-actions">
+                        <button id="copyActiveBtn" class="btn-primary btn-sm">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span>Sao chép 4 giá trị</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 Highlight Cards for Active Model -->
                 <div class="outputs-grid">
                     <!-- Output 1 -->
-                    <div class="output-box box-blue">
-                        <span class="box-tag">CỘT 1 (y₁)</span>
-                        <div class="box-val" id="valY1">75.0</div>
-                        <div class="bar-track"><div class="bar-fill" id="barY1" style="width: 50%;"></div></div>
+                    <div class="output-card card-y1">
+                        <div class="output-card-header">
+                            <span class="output-pill pill-y1">y₁ • CỘT 1</span>
+                            <span class="output-range-tag">5 - 140</span>
+                        </div>
+                        <div class="output-value-row">
+                            <span class="output-value" id="valY1">75.0</span>
+                        </div>
+                        <div class="progress-wrap">
+                            <div class="progress-track">
+                                <div class="progress-fill fill-y1" id="barY1" style="width: 50%;"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Output 2 -->
-                    <div class="output-box box-cyan">
-                        <span class="box-tag">CỘT 2 (y₂)</span>
-                        <div class="box-val" id="valY2">70.0</div>
-                        <div class="bar-track"><div class="bar-fill" id="barY2" style="width: 48%;"></div></div>
+                    <div class="output-card card-y2">
+                        <div class="output-card-header">
+                            <span class="output-pill pill-y2">y₂ • CỘT 2</span>
+                            <span class="output-range-tag">5 - 140</span>
+                        </div>
+                        <div class="output-value-row">
+                            <span class="output-value" id="valY2">70.0</span>
+                        </div>
+                        <div class="progress-wrap">
+                            <div class="progress-track">
+                                <div class="progress-fill fill-y2" id="barY2" style="width: 48%;"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Output 3 -->
-                    <div class="output-box box-green">
-                        <span class="box-tag">CỘT 3 (y₃)</span>
-                        <div class="box-val" id="valY3">85.0</div>
-                        <div class="bar-track"><div class="bar-fill" id="barY3" style="width: 59%;"></div></div>
+                    <div class="output-card card-y3">
+                        <div class="output-card-header">
+                            <span class="output-pill pill-y3">y₃ • CỘT 3</span>
+                            <span class="output-range-tag">5 - 140</span>
+                        </div>
+                        <div class="output-value-row">
+                            <span class="output-value" id="valY3">85.0</span>
+                        </div>
+                        <div class="progress-wrap">
+                            <div class="progress-track">
+                                <div class="progress-fill fill-y3" id="barY3" style="width: 59%;"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Output 4 -->
-                    <div class="output-box box-amber">
-                        <span class="box-tag">CỘT 4 (y₄)</span>
-                        <div class="box-val" id="valY4">60.0</div>
-                        <div class="bar-track"><div class="bar-fill" id="barY4" style="width: 41%;"></div></div>
+                    <div class="output-card card-y4">
+                        <div class="output-card-header">
+                            <span class="output-pill pill-y4">y₄ • CỘT 4</span>
+                            <span class="output-range-tag">5 - 140</span>
+                        </div>
+                        <div class="output-value-row">
+                            <span class="output-value" id="valY4">60.0</span>
+                        </div>
+                        <div class="progress-wrap">
+                            <div class="progress-track">
+                                <div class="progress-fill fill-y4" id="barY4" style="width: 41%;"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Verification Info -->
-                <div class="verification-banner">
-                    <div class="verif-col">
-                        <span class="verif-title">Kiểm thử ngược:</span>
-                        <span>Áp dụng 4 kết quả trên tính ngược lại: 
-                            <strong>x₁ = <span id="simX1">-14.82</span></strong> (lệch: <span id="deltaX1">0.18</span>) | 
-                            <strong>x₂ = <span id="simX2">-4.91</span></strong> (lệch: <span id="deltaX2">0.09</span>)
-                        </span>
+                <!-- Verification Audit Banner for Active Model -->
+                <div class="verification-card">
+                    <div class="verif-header">
+                        <div class="verif-title-group">
+                            <span class="pulse-indicator"></span>
+                            <span class="verif-heading">Kiểm Thử Ngược (Digital Twin Simulator):</span>
+                        </div>
+                        <span class="status-badge" id="statusBadge">Khớp Rất Tốt</span>
                     </div>
-                    <span class="status-badge" id="statusBadge">Khớp tốt</span>
+
+                    <div class="verif-details">
+                        <div class="verif-item">
+                            <span class="verif-label">Mục tiêu x₁:</span>
+                            <strong class="verif-target" id="targetX1">-15.00</strong>
+                            <span class="verif-arrow">→</span>
+                            <span class="verif-sublabel">Mô phỏng lại:</span>
+                            <strong class="verif-sim" id="simX1">-14.82</strong>
+                            <span class="verif-delta">(Lệch: <span id="deltaX1">0.18</span>)</span>
+                        </div>
+                        <div class="verif-divider"></div>
+                        <div class="verif-item">
+                            <span class="verif-label">Mục tiêu x₂:</span>
+                            <strong class="verif-target" id="targetX2">-5.00</strong>
+                            <span class="verif-arrow">→</span>
+                            <span class="verif-sublabel">Mô phỏng lại:</span>
+                            <strong class="verif-sim" id="simX2">-4.91</strong>
+                            <span class="verif-delta">(Lệch: <span id="deltaX2">0.09</span>)</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Copy button -->
-                <div class="actions-row">
-                    <button id="copyBtn" class="btn-action">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                        Sao chép 4 giá trị đầu ra
-                    </button>
-                    <button id="exportCsvBtn" class="btn-action btn-outline">
-                        Xuất file CSV
-                    </button>
+                <!-- Terminal / Formula Block -->
+                <div class="terminal-container">
+                    <div class="terminal-bar">
+                        <div class="terminal-dots">
+                            <span class="dot dot-red"></span>
+                            <span class="dot dot-yellow"></span>
+                            <span class="dot dot-green"></span>
+                        </div>
+                        <span class="terminal-title" id="terminalTitle">analytical_formula_eval.py</span>
+                        <button id="copyFormulaBtn" class="terminal-copy-btn">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span>Sao chép công thức</span>
+                        </button>
+                    </div>
+                    <pre class="formula-pre" id="formulaCode">Đang tải công thức tính toán...</pre>
                 </div>
-            </section>
-
-            <!-- 3. Formula Display -->
-            <section class="card-section formula-section">
-                <div class="section-heading">
-                    <span class="step-num">3</span>
-                    <h2>Công Thức Tính Toán Của Mô Hình Đang Chọn</h2>
-                </div>
-                <pre class="formula-pre" id="formulaCode">Đang tải công thức...</pre>
             </section>
         </main>
 
         <!-- Footer -->
         <footer class="app-footer">
-            <p>Huấn luyện từ 614,656 dòng dữ liệu <code>data1.xlsx</code> • Tự động chạy 100% Client-Side trên GitHub Pages</p>
+            <div class="footer-badges">
+                <span class="footer-pill">Bộ dữ liệu: <code>data1.xlsx</code> (614,656 dòng)</span>
+                <span class="footer-pill">Không gian lưới: 28×28×28×28</span>
+                <span class="footer-pill">8 Thuật toán: Client-side JS tức thì</span>
+            </div>
+            <p class="footer-copy">© Machine Learning Multi-Output Studio • Tự động triển khai qua GitHub Actions</p>
         </footer>
     </div>
 
