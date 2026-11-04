@@ -136,41 +136,43 @@
                     <div class="form-group model-selection-section">
                         <label class="form-label">Chọn thuật toán Học Máy (Machine Learning Model):</label>
                         <div class="model-tabs" id="modelTabs">
-                            <button class="tab-btn active" data-model="NeuralNetwork">
-                                <span class="tab-title">Mạng Nơ-ron</span>
-                                <span class="tab-sub">Deep MLP</span>
+                            <button class="tab-btn active recommended-model" data-model="Ensemble">
+                                <span class="tab-badge-top">🏆 TỐT NHẤT</span>
+                                <span class="tab-title">Ensemble Blending</span>
+                                <span class="tab-sub">Tổ hợp tối ưu (MLP+Poly+KNN)</span>
                             </button>
-                            <button class="tab-btn" data-model="Ensemble">
-                                <span class="tab-title">Ensemble</span>
-                                <span class="tab-sub">Blending kết hợp</span>
+                            <button class="tab-btn" data-model="KNN">
+                                <span class="tab-badge-top">⭐ VẬT LÝ TUYỆT ĐỐI</span>
+                                <span class="tab-title">KNN / Khớp Mẫu</span>
+                                <span class="tab-sub">614,656 mẫu thực (|Δv| &lt; 0.005 dB)</span>
+                            </button>
+                            <button class="tab-btn" data-model="NeuralNetwork">
+                                <span class="tab-title">Mạng Nơ-ron (MLP)</span>
+                                <span class="tab-sub">Deep Learning phi tuyến</span>
                             </button>
                             <button class="tab-btn" data-model="PolynomialRegression">
                                 <span class="tab-title">Hồi quy Đa thức</span>
-                                <span class="tab-sub">Bậc 2 (Poly)</span>
+                                <span class="tab-sub">Bậc 2 (Poly Surface)</span>
                             </button>
                             <button class="tab-btn" data-model="DecisionTree">
                                 <span class="tab-title">Cây quyết định</span>
                                 <span class="tab-sub">Decision Tree</span>
                             </button>
-                            <button class="tab-btn" data-model="LinearRegression">
-                                <span class="tab-title">Tuyến tính</span>
-                                <span class="tab-sub">d = W·v + b</span>
+                            <button class="tab-btn" data-model="LassoRegression">
+                                <span class="tab-title">Hồi quy Lasso</span>
+                                <span class="tab-sub">Tuyến tính L1</span>
                             </button>
                             <button class="tab-btn" data-model="RidgeRegression">
-                                <span class="tab-title">Ridge</span>
-                                <span class="tab-sub">L2 Regularized</span>
+                                <span class="tab-title">Hồi quy Ridge</span>
+                                <span class="tab-sub">Tuyến tính L2</span>
                             </button>
-                            <button class="tab-btn" data-model="LassoRegression">
-                                <span class="tab-title">Lasso</span>
-                                <span class="tab-sub">L1 Regularized</span>
-                            </button>
-                            <button class="tab-btn" data-model="KNN">
-                                <span class="tab-title">KNN Match</span>
-                                <span class="tab-sub">614k mẫu thực</span>
+                            <button class="tab-btn" data-model="LinearRegression">
+                                <span class="tab-title">Tuyến tính</span>
+                                <span class="tab-sub">Giải tích cơ bản</span>
                             </button>
                         </div>
                         <p class="model-info-note" id="modelDescription">
-                            Mạng Deep Feedforward MLP (3 tầng ẩn: 64-64-32 nơ-ron, hàm kích hoạt ReLU) mô hình hóa mối quan hệ phi tuyến phức tạp.
+                            🏆 <strong>Mô hình Khuyên Dùng (Default):</strong> Ensemble Blending kết hợp có trọng số từ Mạng Nơ-ron (45%), Đa thức (35%) và KNN (20%) để đạt độ ổn định và chính xác cao nhất trên toàn bộ không gian tham số.
                         </p>
 
                         <!-- Live Substituted Formula Box -->

@@ -514,7 +514,33 @@ input[type="range"] {
     cursor: pointer;
     display: flex;
     flex-direction: column;
+    position: relative;
     transition: all 0.2s ease;
+}
+
+.tab-badge-top {
+    font-size: 0.625rem;
+    font-weight: 800;
+    color: #b45309;
+    background: #fef3c7;
+    padding: 1px 5px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 4px;
+    align-self: flex-start;
+    border: 1px solid #fcd34d;
+    letter-spacing: 0.02em;
+}
+
+body.theme-dark .tab-badge-top {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.tab-btn.recommended-model {
+    border-color: var(--primary);
+    background: rgba(37, 99, 235, 0.03);
 }
 
 .tab-btn:hover {

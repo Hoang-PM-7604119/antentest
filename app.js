@@ -9,11 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const { models, forward_simulator, samples, dataset_info } = window.ANTENNA_MODELS_DATA;
 
-    // State - DEFAULT TO LIGHT THEME
+    // State - DEFAULT TO LIGHT THEME & BEST PERFORMING MODEL (Ensemble)
     const state = {
         v1: -15.0,
         v2: -5.0,
-        currentModel: 'NeuralNetwork',
+        currentModel: 'Ensemble', // DEFAULT IS NOW THE TOP-RATED ENSEMBLE MODEL
         snapToGrid: true,
         theme: localStorage.getItem('antenna_theme') || 'light',
         predictions: {
@@ -515,17 +515,17 @@ d₁ = ${d1.toFixed(1)} mm, d₂ = ${d2.toFixed(1)} mm, d₃ = ${d3.toFixed(1)} 
         activeFormulaMath.textContent = txt;
     }
 
-    // Comparison Table Renderer
+    // Comparison Table Renderer - Sorted with the BEST models at the top
     function renderTable() {
         const modelKeys = [
-            { key: 'NeuralNetwork', name: 'Mạng nơ-ron (MLP)', badge: 'badge-complex', complexity: 'Nâng cao' },
-            { key: 'Ensemble', name: 'Ensemble Blending (Kết hợp)', badge: 'badge-complex', complexity: 'Tối ưu' },
+            { key: 'Ensemble', name: '🏆 Ensemble Blending (Tốt nhất)', badge: 'badge-complex', complexity: 'Tổ hợp tối ưu' },
+            { key: 'KNN', name: '⭐ KNN / Khớp mô phỏng thực', badge: 'badge-medium', complexity: 'Vật lý tuyệt đối' },
+            { key: 'NeuralNetwork', name: 'Mạng nơ-ron sâu (MLP)', badge: 'badge-complex', complexity: 'Deep Learning' },
             { key: 'PolynomialRegression', name: 'Hồi quy đa thức (Bậc 2)', badge: 'badge-medium', complexity: 'Trung bình' },
             { key: 'DecisionTree', name: 'Cây quyết định (Tree)', badge: 'badge-medium', complexity: 'Trung bình' },
-            { key: 'LinearRegression', name: 'Hồi quy tuyến tính', badge: 'badge-simple', complexity: 'Đơn giản' },
-            { key: 'RidgeRegression', name: 'Hồi quy Ridge (L2)', badge: 'badge-simple', complexity: 'Đơn giản' },
             { key: 'LassoRegression', name: 'Hồi quy Lasso (L1)', badge: 'badge-simple', complexity: 'Đơn giản' },
-            { key: 'KNN', name: 'KNN / Khớp mẫu mô phỏng', badge: 'badge-medium', complexity: 'Thực nghiệm' }
+            { key: 'RidgeRegression', name: 'Hồi quy Ridge (L2)', badge: 'badge-simple', complexity: 'Đơn giản' },
+            { key: 'LinearRegression', name: 'Hồi quy tuyến tính', badge: 'badge-simple', complexity: 'Đơn giản' }
         ];
 
         let html = '';
