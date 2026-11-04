@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>So Sánh Tất Cả Thuật Toán: 2 Đầu Vào → 4 Đầu Ra (Machine Learning Studio)</title>
+    <title>So Sánh Tất Cả Thuật Toán: 2 Đầu Vào → 6 Đầu Ra (Machine Learning Studio)</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -19,10 +19,10 @@
         <header class="app-header">
             <div class="badge-pill">
                 <span class="badge-dot"></span>
-                <span class="badge-text">Machine Learning Studio • 1,000,000 Mẫu Huấn Luyện</span>
+                <span class="badge-text">Machine Learning Studio • 1,000,000 Mẫu Dữ Liệu Thực Nghiệm</span>
             </div>
-            <h1 class="header-title">So Sánh Tất Cả Thuật Toán: 2 Đầu Vào <span class="arrow-accent">→</span> 4 Đầu Ra</h1>
-            <p class="header-desc">Nhập 1 lần giá trị Cột 5 (x₁) & Cột 6 (x₂) — Hệ thống tính toán và hiển thị đồng thời kết quả của cả 10 mô hình Machine Learning (bao gồm KNN k=1, k=3, k=5) để tiện so sánh trực tiếp</p>
+            <h1 class="header-title">So Sánh Tất Cả Thuật Toán: 2 Đầu Vào <span class="arrow-accent">→</span> 6 Đầu Ra</h1>
+            <p class="header-desc">Nhập 1 lần 2 giá trị đầu vào ở Cột 7 (x₁) & Cột 8 (x₂) — Hệ thống tính toán và hiển thị đồng thời kết quả của cả 11 mô hình Machine Learning (KNN k=1, k=3, k=5, Cây quyết định, SVM, v.v.) để dự đoán 6 đầu ra (Cột 1 đến Cột 6: t₃, t₂, t₁, z₃, z₂, z₁)</p>
         </header>
 
         <!-- Main Workspace Card -->
@@ -33,8 +33,8 @@
                     <div class="heading-left">
                         <span class="step-num">1</span>
                         <div>
-                            <h2>Nhập 2 Biến Đầu Vào</h2>
-                            <p class="section-sub">Nhập một lần để tính toán tức thời cho tất cả các thuật toán</p>
+                            <h2>Nhập 2 Biến Đầu Vào (2 Cột Cuối)</h2>
+                            <p class="section-sub">Nhập một lần để tính toán tức thời cho toàn bộ 11 thuật toán</p>
                         </div>
                     </div>
                     <button id="resetBtn" class="btn-text" title="Đặt lại về giá trị mặc định">
@@ -54,7 +54,7 @@
                                 <span class="input-icon-box icon-x1">x₁</span>
                                 <div>
                                     <label for="inputX1" class="input-label">Đầu vào 1</label>
-                                    <span class="input-sub">Cột 5 trong tập dữ liệu</span>
+                                    <span class="input-sub">Cột 7 trong tập dữ liệu (dB(S(1,1))_f1)</span>
                                 </div>
                             </div>
                             <span class="value-tag" id="x1Badge">-15.00</span>
@@ -82,7 +82,7 @@
                                 <span class="input-icon-box icon-x2">x₂</span>
                                 <div>
                                     <label for="inputX2" class="input-label">Đầu vào 2</label>
-                                    <span class="input-sub">Cột 6 trong tập dữ liệu</span>
+                                    <span class="input-sub">Cột 8 trong tập dữ liệu (dB(S(1,1))_f2)</span>
                                 </div>
                             </div>
                             <span class="value-tag" id="x2Badge">-5.00</span>
@@ -118,7 +118,7 @@
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
                             </svg>
-                            <span>Xuất toàn bộ 10 mô hình ra CSV</span>
+                            <span>Xuất toàn bộ 11 mô hình ra CSV</span>
                         </button>
                     </div>
                 </div>
@@ -130,7 +130,7 @@
                     <div class="heading-left">
                         <span class="step-num step-num-green">2</span>
                         <div>
-                            <h2>Bảng So Sánh Trực Tiếp Tất Cả 10 Thuật Toán</h2>
+                            <h2>Bảng So Sánh Trực Tiếp Tất Cả 11 Thuật Toán</h2>
                             <p class="section-sub">Nhấp vào từng dòng để xem công thức chi tiết và chọn làm mô hình nổi bật</p>
                         </div>
                     </div>
@@ -141,10 +141,12 @@
                         <thead>
                             <tr>
                                 <th class="col-algo">Thuật toán</th>
-                                <th class="col-dim">Cột 1 (y₁)</th>
-                                <th class="col-dim">Cột 2 (y₂)</th>
-                                <th class="col-dim">Cột 3 (y₃)</th>
-                                <th class="col-dim">Cột 4 (y₄)</th>
+                                <th class="col-dim">Cột 1 (t₃)</th>
+                                <th class="col-dim">Cột 2 (t₂)</th>
+                                <th class="col-dim">Cột 3 (t₁)</th>
+                                <th class="col-dim">Cột 4 (z₃)</th>
+                                <th class="col-dim">Cột 5 (z₂)</th>
+                                <th class="col-dim">Cột 6 (z₁)</th>
                                 <th class="col-sim">Kiểm thử ngược (x₁ˢⁱᵐ, x₂ˢⁱᵐ)</th>
                                 <th class="col-err">Độ lệch (Δx)</th>
                                 <th class="col-rating">Đánh giá</th>
@@ -164,7 +166,7 @@
                         <span class="step-num step-num-purple">3</span>
                         <div>
                             <h2>Chi Tiết Mô Hình Đang Chọn: <span id="activeModelTitle" class="highlight-title">Ensemble Blending</span></h2>
-                            <p class="section-sub">Xem trực quan 4 đầu ra và phương trình giải tích tương ứng</p>
+                            <p class="section-sub">Xem trực quan 6 đầu ra (Cột 1 đến Cột 6) và phương trình giải tích tương ứng</p>
                         </div>
                     </div>
                     <div class="active-model-actions">
@@ -173,17 +175,17 @@
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                             </svg>
-                            <span>Sao chép 4 giá trị</span>
+                            <span>Sao chép 6 giá trị</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- 4 Highlight Cards for Active Model -->
+                <!-- 6 Highlight Cards for Active Model -->
                 <div class="outputs-grid">
                     <!-- Output 1 -->
                     <div class="output-card card-y1">
                         <div class="output-card-header">
-                            <span class="output-pill pill-y1">y₁ • CỘT 1</span>
+                            <span class="output-pill pill-y1">y₁ • CỘT 1 (t₃)</span>
                             <span class="output-range-tag">5 - 140</span>
                         </div>
                         <div class="output-value-row">
@@ -199,7 +201,7 @@
                     <!-- Output 2 -->
                     <div class="output-card card-y2">
                         <div class="output-card-header">
-                            <span class="output-pill pill-y2">y₂ • CỘT 2</span>
+                            <span class="output-pill pill-y2">y₂ • CỘT 2 (t₂)</span>
                             <span class="output-range-tag">5 - 140</span>
                         </div>
                         <div class="output-value-row">
@@ -215,7 +217,7 @@
                     <!-- Output 3 -->
                     <div class="output-card card-y3">
                         <div class="output-card-header">
-                            <span class="output-pill pill-y3">y₃ • CỘT 3</span>
+                            <span class="output-pill pill-y3">y₃ • CỘT 3 (t₁)</span>
                             <span class="output-range-tag">5 - 140</span>
                         </div>
                         <div class="output-value-row">
@@ -231,7 +233,7 @@
                     <!-- Output 4 -->
                     <div class="output-card card-y4">
                         <div class="output-card-header">
-                            <span class="output-pill pill-y4">y₄ • CỘT 4</span>
+                            <span class="output-pill pill-y4">y₄ • CỘT 4 (z₃)</span>
                             <span class="output-range-tag">5 - 140</span>
                         </div>
                         <div class="output-value-row">
@@ -243,6 +245,38 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Output 5 -->
+                    <div class="output-card card-y5">
+                        <div class="output-card-header">
+                            <span class="output-pill pill-y5">y₅ • CỘT 5 (z₂)</span>
+                            <span class="output-range-tag">5 - 140</span>
+                        </div>
+                        <div class="output-value-row">
+                            <span class="output-value" id="valY5">65.0</span>
+                        </div>
+                        <div class="progress-wrap">
+                            <div class="progress-track">
+                                <div class="progress-fill fill-y5" id="barY5" style="width: 44%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Output 6 -->
+                    <div class="output-card card-y6">
+                        <div class="output-card-header">
+                            <span class="output-pill pill-y6">y₆ • CỘT 6 (z₁)</span>
+                            <span class="output-range-tag">5 - 140</span>
+                        </div>
+                        <div class="output-value-row">
+                            <span class="output-value" id="valY6">55.0</span>
+                        </div>
+                        <div class="progress-wrap">
+                            <div class="progress-track">
+                                <div class="progress-fill fill-y6" id="barY6" style="width: 37%;"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Verification Audit Banner for Active Model -->
@@ -250,14 +284,14 @@
                     <div class="verif-header">
                         <div class="verif-title-group">
                             <span class="pulse-indicator"></span>
-                            <span class="verif-heading">Kiểm Thử Ngược (Digital Twin Simulator):</span>
+                            <span class="verif-heading">Kiểm Thử Ngược (Digital Twin Simulator [y₁..y₆] → [x₁, x₂]):</span>
                         </div>
                         <span class="status-badge" id="statusBadge">Khớp Rất Tốt</span>
                     </div>
 
                     <div class="verif-details">
                         <div class="verif-item">
-                            <span class="verif-label">Mục tiêu x₁:</span>
+                            <span class="verif-label">Mục tiêu x₁ (Cột 7):</span>
                             <strong class="verif-target" id="targetX1">-15.00</strong>
                             <span class="verif-arrow">→</span>
                             <span class="verif-sublabel">Mô phỏng lại:</span>
@@ -266,7 +300,7 @@
                         </div>
                         <div class="verif-divider"></div>
                         <div class="verif-item">
-                            <span class="verif-label">Mục tiêu x₂:</span>
+                            <span class="verif-label">Mục tiêu x₂ (Cột 8):</span>
                             <strong class="verif-target" id="targetX2">-5.00</strong>
                             <span class="verif-arrow">→</span>
                             <span class="verif-sublabel">Mô phỏng lại:</span>
@@ -301,11 +335,11 @@
         <!-- Footer -->
         <footer class="app-footer">
             <div class="footer-badges">
-                <span class="footer-pill">Bộ dữ liệu: <code>data3_tong_hop.xlsx</code> (1,000,000 dòng)</span>
-                <span class="footer-pill">Không gian lưới: 10×10×10×10 (100 sweeps)</span>
-                <span class="footer-pill">10 Thuật toán: Client-side JS tức thì</span>
+                <span class="footer-pill">Bộ dữ liệu: <code>data3_tong_hop.xlsx</code> (1,000,000 dòng, 8 cột)</span>
+                <span class="footer-pill">Cấu trúc: 2 Cột Cuối (Input) → 6 Cột Đầu (Output)</span>
+                <span class="footer-pill">11 Thuật toán: KNN (k=1, 3, 5), Decision Tree, SVM, Tuyến tính, Đa thức</span>
             </div>
-            <p class="footer-copy">© Machine Learning Multi-Output Studio • Tự động triển khai qua GitHub Actions</p>
+            <p class="footer-copy">© Machine Learning Multi-Output Studio • Tính toán trực tiếp phía client (Client-side JS tức thì)</p>
         </footer>
     </div>
 

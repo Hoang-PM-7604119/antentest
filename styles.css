@@ -89,7 +89,7 @@ body {
 
 .app-container {
     width: 100%;
-    max-width: 980px;
+    max-width: 1120px;
     display: flex;
     flex-direction: column;
     gap: 28px;
@@ -577,6 +577,8 @@ body {
 .tag-y2 { background: rgba(8, 145, 178, 0.08); color: #0891b2; }
 .tag-y3 { background: rgba(5, 150, 105, 0.08); color: #059669; }
 .tag-y4 { background: rgba(217, 119, 6, 0.08); color: #d97706; }
+.tag-y5 { background: rgba(139, 92, 246, 0.08); color: #8b5cf6; }
+.tag-y6 { background: rgba(225, 29, 72, 0.08); color: #e11d48; }
 
 .sim-val {
     font-family: var(--font-mono);
@@ -629,8 +631,8 @@ body {
 
 .outputs-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
     margin-bottom: 20px;
 }
 
@@ -638,7 +640,7 @@ body {
     background: #ffffff;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 18px 16px;
+    padding: 16px 12px;
     position: relative;
     box-shadow: var(--shadow-sm);
     transition: var(--transition);
@@ -658,6 +660,8 @@ body {
 .card-y2::before { background: linear-gradient(90deg, #0891b2, #22d3ee); }
 .card-y3::before { background: linear-gradient(90deg, #059669, #34d399); }
 .card-y4::before { background: linear-gradient(90deg, #d97706, #fbbf24); }
+.card-y5::before { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
+.card-y6::before { background: linear-gradient(90deg, #e11d48, #fb7185); }
 
 .output-card:hover {
     transform: translateY(-3px);
@@ -685,6 +689,8 @@ body {
 .pill-y2 { background: rgba(8, 145, 178, 0.1); color: #0891b2; }
 .pill-y3 { background: rgba(5, 150, 105, 0.1); color: #059669; }
 .pill-y4 { background: rgba(217, 119, 6, 0.1); color: #d97706; }
+.pill-y5 { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.pill-y6 { background: rgba(225, 29, 72, 0.1); color: #e11d48; }
 
 .output-range-tag {
     font-size: 0.7rem;
@@ -698,7 +704,7 @@ body {
 }
 
 .output-value {
-    font-size: 2.35rem;
+    font-size: 2.1rem;
     font-weight: 800;
     font-family: var(--font-mono);
     color: var(--text-main);
@@ -728,6 +734,8 @@ body {
 .fill-y2 { background: linear-gradient(90deg, #06b6d4, #0891b2); }
 .fill-y3 { background: linear-gradient(90deg, #10b981, #059669); }
 .fill-y4 { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.fill-y5 { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+.fill-y6 { background: linear-gradient(90deg, #f43f5e, #e11d48); }
 
 /* Verification Banner */
 .verification-card {
@@ -996,11 +1004,13 @@ body {
    Responsive Breakpoints
    ========================================================================== */
 
-@media (max-width: 860px) {
+@media (max-width: 980px) {
     .outputs-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
+}
 
+@media (max-width: 860px) {
     .inputs-grid {
         grid-template-columns: 1fr;
     }
@@ -1022,6 +1032,12 @@ body {
     }
 }
 
+@media (max-width: 600px) {
+    .outputs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 540px) {
     body {
         padding: 20px 12px 40px;
@@ -1034,7 +1050,9 @@ body {
     .card-section {
         padding: 20px 16px;
     }
+}
 
+@media (max-width: 380px) {
     .outputs-grid {
         grid-template-columns: 1fr;
     }
