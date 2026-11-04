@@ -126,7 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function clampOutput(val) {
         let v = Math.max(5.0, Math.min(140.0, val));
         if (state.snapToGrid) {
-            v = Math.round(v / 5.0) * 5.0;
+            v = 5.0 + Math.round((v - 5.0) / 15.0) * 15.0;
+            v = Math.max(5.0, Math.min(140.0, v));
         } else {
             v = Math.round(v * 10) / 10;
         }
@@ -488,7 +489,7 @@ y₁ = ${y[0].toFixed(1)}, y₂ = ${y[1].toFixed(1)}, y₃ = ${y[2].toFixed(1)},
     inputX1.addEventListener('change', (e) => {
         let v = parseFloat(e.target.value);
         if (isNaN(v)) v = -15.0;
-        v = Math.max(-55.8, Math.min(0.0, v));
+        v = Math.max(-52.07, Math.min(0.0, v));
         state.x1 = v;
         sliderX1.value = v;
         e.target.value = v.toFixed(1);
@@ -504,7 +505,7 @@ y₁ = ${y[0].toFixed(1)}, y₂ = ${y[1].toFixed(1)}, y₃ = ${y[2].toFixed(1)},
     inputX2.addEventListener('change', (e) => {
         let v = parseFloat(e.target.value);
         if (isNaN(v)) v = -5.0;
-        v = Math.max(-47.8, Math.min(0.0, v));
+        v = Math.max(-42.08, Math.min(0.0, v));
         state.x2 = v;
         sliderX2.value = v;
         e.target.value = v.toFixed(1);

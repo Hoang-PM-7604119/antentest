@@ -19,7 +19,7 @@
         <header class="app-header">
             <div class="badge-pill">
                 <span class="badge-dot"></span>
-                <span class="badge-text">Machine Learning Studio • 614,656 Mẫu Huấn Luyện</span>
+                <span class="badge-text">Machine Learning Studio • 1,000,000 Mẫu Huấn Luyện</span>
             </div>
             <h1 class="header-title">So Sánh Tất Cả Thuật Toán: 2 Đầu Vào <span class="arrow-accent">→</span> 4 Đầu Ra</h1>
             <p class="header-desc">Nhập 1 lần giá trị Cột 5 (x₁) & Cột 6 (x₂) — Hệ thống tính toán và hiển thị đồng thời kết quả của cả 8 mô hình Machine Learning để tiện so sánh trực tiếp</p>
@@ -61,16 +61,16 @@
                         </div>
 
                         <div class="slider-container">
-                            <input type="range" id="sliderX1" min="-56.8" max="0.0" step="0.1" value="-15.0" class="slider-range">
+                            <input type="range" id="sliderX1" min="-52.0" max="0.0" step="0.1" value="-15.0" class="slider-range">
                         </div>
 
                         <div class="input-footer">
                             <div class="range-bounds">
-                                <span>Min: -56.87</span>
+                                <span>Min: -52.07</span>
                                 <span>Max: 0.00</span>
                             </div>
                             <div class="number-wrapper">
-                                <input type="number" id="inputX1" min="-56.9" max="0.0" step="0.1" value="-15.0" class="number-box">
+                                <input type="number" id="inputX1" min="-52.1" max="0.0" step="0.1" value="-15.0" class="number-box">
                             </div>
                         </div>
                     </div>
@@ -89,16 +89,16 @@
                         </div>
 
                         <div class="slider-container">
-                            <input type="range" id="sliderX2" min="-47.3" max="0.0" step="0.1" value="-5.0" class="slider-range">
+                            <input type="range" id="sliderX2" min="-42.0" max="0.0" step="0.1" value="-5.0" class="slider-range">
                         </div>
 
                         <div class="input-footer">
                             <div class="range-bounds">
-                                <span>Min: -47.35</span>
+                                <span>Min: -42.08</span>
                                 <span>Max: 0.00</span>
                             </div>
                             <div class="number-wrapper">
-                                <input type="number" id="inputX2" min="-47.4" max="0.0" step="0.1" value="-5.0" class="number-box">
+                                <input type="number" id="inputX2" min="-42.1" max="0.0" step="0.1" value="-5.0" class="number-box">
                             </div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@
                     <label class="custom-toggle">
                         <input type="checkbox" id="snapStep" checked>
                         <span class="toggle-slider"></span>
-                        <span class="toggle-label">Làm tròn bước 5 (theo bước lưới 5, 10, ..., 140 của dữ liệu gốc <code>data2_f1.xlsx</code>)</span>
+                        <span class="toggle-label">Làm tròn theo bước lưới dữ liệu gốc (5, 20, 35, ..., 140 của <code>data3_tong_hop.xlsx</code>)</span>
                     </label>
                     <div class="export-actions">
                         <button id="exportCsvBtn" class="btn-secondary btn-sm">
@@ -301,8 +301,8 @@
         <!-- Footer -->
         <footer class="app-footer">
             <div class="footer-badges">
-                <span class="footer-pill">Bộ dữ liệu: <code>data2_f1.xlsx</code> (614,656 dòng)</span>
-                <span class="footer-pill">Không gian lưới: 28×28×28×28</span>
+                <span class="footer-pill">Bộ dữ liệu: <code>data3_tong_hop.xlsx</code> (1,000,000 dòng)</span>
+                <span class="footer-pill">Không gian lưới: 10×10×10×10 (100 sweeps)</span>
                 <span class="footer-pill">8 Thuật toán: Client-side JS tức thì</span>
             </div>
             <p class="footer-copy">© Machine Learning Multi-Output Studio • Tự động triển khai qua GitHub Actions</p>

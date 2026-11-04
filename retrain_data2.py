@@ -297,3 +297,4 @@ print("\nPolynomial Regression formulas:")
 for i in range(4):
     c = results['PolynomialRegression']['coef'][i]
     print(f"  y{i+1} = {c[0]:.4f} + ({c[1]:.4f})*x1 + ({c[2]:.4f})*x2 + ({c[3]:.4f})*x1^2 + ({c[4]:.4f})*x1*x2 + ({c[5]:.4f})*x2^2")
+
