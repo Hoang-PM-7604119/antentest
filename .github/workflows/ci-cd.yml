@@ -1,0 +1,71 @@
+name: CI/CD Pipeline (Test & Deploy to GitHub Pages)
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # -----------------------------------------------------------
+  # CI: Continuous Integration (Lint, Syntax & Model Tests)
+  # -----------------------------------------------------------
+  ci:
+    name: "CI: Lint & Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate Syntax & Lint
+        run: |
+          echo "Checking JavaScript syntax..."
+          node -c app.js
+          node -c models_data.js
+
+      - name: Run Automated ML Model Tests
+        run: |
+          echo "Executing test suite..."
+          node tests/model_test.js
+
+  # -----------------------------------------------------------
+  # CD: Continuous Deployment (Auto Deploy to GitHub Pages)
+  # -----------------------------------------------------------
+  cd:
+    name: "CD: Deploy to GitHub Pages"
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

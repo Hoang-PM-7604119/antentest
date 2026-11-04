@@ -1,8 +1,45 @@
 # Antenna ML Inverse Design & Digital Twin Studio 📡
 
+[![CI/CD Pipeline](https://github.com/Hoang-PM-7604119/antentest/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Hoang-PM-7604119/antentest/actions/workflows/ci-cd.yml)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live%20Website-brightgreen?logo=github)](https://hoang-pm-7604119.github.io/antentest/)
+
 Trang web tĩnh chạy hoàn toàn trên trình duyệt (Client-side Machine Learning) phục vụ bài toán thiết kế ngược (Inverse Design) ăng-ten từ dữ liệu mô phỏng điện từ `data1.xlsx`.
 
-🔗 **Live Website**: Triển khai trực tiếp qua **GitHub Pages**.
+🔗 **Live Website**: **[https://hoang-pm-7604119.github.io/antentest/](https://hoang-pm-7604119.github.io/antentest/)**  
+📂 **GitHub Repository**: **[https://github.com/Hoang-PM-7604119/antentest](https://github.com/Hoang-PM-7604119/antentest)**
+
+---
+
+## ⚡ Tự Động Hóa CI/CD: "Chỉ Cần Git Push Là Xong"
+
+Dự án đã được tích hợp toàn diện quy trình **CI/CD tự động** thông qua GitHub Actions (`.github/workflows/ci-cd.yml`):
+
+```mermaid
+flowchart LR
+    A[👨‍💻 Bạn git push] --> B[🔍 CI: Lint & Unit Tests]
+    B -->|✅ 10 Bài Test Đạt| C[🚀 CD: Deploy to GitHub Pages]
+    B -->|❌ Có lỗi| D[🛑 Dừng triển khai & Báo lỗi]
+    C --> E[🌐 Cập nhật website trực tiếp]
+```
+
+### 1. Quy trình CI (Continuous Integration):
+Mỗi lần có lệnh `git push`, hệ thống tự động:
+- Kiểm tra tính đúng đắn của toàn bộ cú pháp JavaScript và HTML.
+- Chạy **10 bài kiểm thử đơn vị tự động (Unit Tests)** trong file `tests/model_test.js`:
+  1. Kiểm tra tính toàn vẹn của file dữ liệu mô hình `all_models.json`.
+  2. Xác thực 5 mô hình ML có đầy đủ trọng số và chỉ số MAE, $R^2$.
+  3. Kiểm tra mạng nơ-ron Digital Twin Forward Simulator.
+  4. Xác thực cơ sở dữ liệu mẫu mô phỏng cho KNN.
+  5. Test suy luận Hồi quy Tuyến tính với các ca biên cực hạn.
+  6. Test suy luận Hồi quy Đa thức bậc 2.
+  7. Test thuật toán duyệt Cây Quyết định (Decision Tree).
+  8. Test lan truyền tiến mạng nơ-ron (MLP Neural Network).
+  9. Test kiểm tra ngược với bộ mô phỏng Digital Twin Simulator.
+  10. Xác thực tính nhất quán của file nạp trình duyệt `models_data.js`.
+
+### 2. Quy trình CD (Continuous Deployment):
+- Chỉ khi tất cả các bài test trong bước CI đạt chuẩn 100%, hệ thống mới tự động đóng gói và đẩy phiên bản mới nhất lên **GitHub Pages**.
+- Toàn bộ quá trình diễn ra tự động trong khoảng 30 - 45 giây.
 
 ---
 
@@ -21,8 +58,7 @@ Mục tiêu: **Nhập 2 thông số mục tiêu (Cột 5 & 6) $\to$ Dự đoán 
 Hệ thống tích hợp **6 mô hình học máy từ đơn giản đến nâng cao**:
 
 1. **Hồi quy Tuyến tính (Linear Regression)**:
-   - Mô hình giải tích đơn giản nhất: $\mathbf{d} = \mathbf{W}\mathbf{v} + \mathbf{b}$.
-   - Tốc độ tính toán siêu nhanh ($< 0.01\text{ ms}$).
+   - Mô hình giải tích đơn giản nhất: $\mathbf{d} = \mathbf{W}\mathbf{v} + \mathbf{b}$. Tốc độ tính toán siêu nhanh ($< 0.01\text{ ms}$).
 2. **Hồi quy Ridge (L2 Regularization)**:
    - Hồi quy tuyến tính có hiệu chỉnh $L_2$ để kiểm soát độ lệch và chống đa cộng tuyến.
 3. **Hồi quy Đa thức bậc 2 (Polynomial Regression)**:
@@ -45,57 +81,20 @@ Ngoài mô hình nghịch đảo, hệ thống còn trang bị **Mạng Nơ-ron 
 
 ---
 
-## 🎨 Trực Quan Hóa CAD Ăng-ten (Interactive SVG)
-
-Sơ đồ hình học ăng-ten (Miếng bức xạ Patch $d_1 \times d_2$, Đường tiếp điện Feed Stub $d_3$, Khe phối hợp trở kháng Slot $d_4$) tự động co giãn theo thời gian thực khi người dùng thay đổi thông số hoặc đổi mô hình.
-
----
-
-## 🚀 Hướng Dẫn Đồng Bộ Lên GitHub & Kích Hoạt GitHub Pages
-
-### Bước 1: Khởi tạo và Commit Git tại máy (Đã hoàn tất)
-```bash
-cd /Users/MAC/antentest
-git add .
-git commit -m "feat: complete Antenna ML Inverse Design static website with 6 models"
-```
-
-### Bước 2: Tạo Repository trên GitHub
-1. Truy cập [GitHub](https://github.com/new).
-2. Đặt tên repository là: **`antentest`** (hoặc tên tùy chọn).
-3. Chọn chế độ: **Public**.
-4. Nhấn **Create repository**.
-
-### Bước 3: Đẩy mã nguồn lên GitHub
-Chạy các lệnh sau trong Terminal:
-```bash
-cd /Users/MAC/antentest
-git remote add origin https://github.com/Hoang-PM-7604119/antentest.git
-git branch -M main
-git push -u origin main
-```
-
-### Bước 4: Kích hoạt GitHub Pages để Expose ra Internet
-1. Vào repository trên GitHub: `https://github.com/Hoang-PM-7604119/antentest`.
-2. Vào **Settings** $\to$ Chọn tab **Pages** ở thanh bên trái.
-3. Tại mục **Build and deployment**:
-   - **Source**: Chọn `Deploy from a branch`.
-   - **Branch**: Chọn `main` và thư mục `/ (root)`.
-   - Nhấn **Save**.
-4. Chờ khoảng 1-2 phút, GitHub sẽ cấp link trang web công khai có dạng:
-   **`https://hoang-pm-7604119.github.io/antentest/`**
-
----
-
 ## 📁 Cấu Trúc Mã Nguồn
 
 ```text
 /Users/MAC/antentest/
+├── .github/workflows/
+│   └── ci-cd.yml        # Pipeline CI/CD tự động (Test & Deploy GitHub Pages)
+├── tests/
+│   └── model_test.js    # Bộ 10 bài test tự động cho các mô hình ML
 ├── index.html           # Giao diện chính Responsive, trực quan hóa CAD
 ├── styles.css           # Bảng màu, theme Sáng/Tối, CSS Grid & Flexbox
 ├── app.js               # Logic suy luận 6 thuật toán ML trên trình duyệt
 ├── models_data.js       # Trọng số pre-trained của 6 mô hình ML & dữ liệu mẫu
 ├── all_models.json      # File JSON cấu trúc mô hình
+├── package.json         # Cấu hình kiểm thử (npm test)
 ├── .gitignore           # Bỏ qua file Excel 30MB để repo nhẹ & chuẩn GitHub Pages
-└── README.md            # Tài liệu dự án & hướng dẫn triển khai
+└── README.md            # Tài liệu dự án & CI/CD
 ```

@@ -1,0 +1,18 @@
+{
+  "name": "antenna-ml-inverse-design",
+  "version": "1.0.0",
+  "description": "Antenna Inverse Design & Digital Twin Studio using Machine Learning",
+  "scripts": {
+    "test": "node tests/model_test.js",
+    "lint": "node -c app.js && node -c models_data.js"
+  },
+  "keywords": [
+    "machine-learning",
+    "antenna-design",
+    "inverse-problem",
+    "digital-twin",
+    "github-pages"
+  ],
+  "author": "Hoang-PM-7604119",
+  "license": "MIT"
+}
