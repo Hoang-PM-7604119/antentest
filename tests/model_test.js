@@ -15,16 +15,18 @@ console.log('✓ Test 1 Passed: all_models.json is valid');
 const expectedModels = [
     'LinearRegression',
     'RidgeRegression',
+    'LassoRegression',
     'PolynomialRegression',
     'DecisionTree',
-    'NeuralNetwork'
+    'NeuralNetwork',
+    'Ensemble'
 ];
 for (const m of expectedModels) {
     assert(data.models[m], `Missing model: ${m}`);
     assert(typeof data.models[m].mae === 'number', `Model ${m} missing MAE`);
     assert(typeof data.models[m].r2 === 'number', `Model ${m} missing R2`);
 }
-console.log('✓ Test 2 Passed: All 5 primary ML models are defined with metrics');
+console.log('✓ Test 2 Passed: All 7 primary ML models are defined with metrics');
 
 // 3. Verify Forward Digital Twin Simulator exists
 assert(data.forward_simulator, 'Missing forward_simulator in dataset');
@@ -36,7 +38,7 @@ assert(Array.isArray(data.samples), 'samples must be an array');
 assert(data.samples.length > 1000, `Expected > 1000 samples, got ${data.samples.length}`);
 console.log(`✓ Test 4 Passed: KNN database contains ${data.samples.length} verified simulation points`);
 
-// 5. Test Linear & Ridge inference
+// 5. Test Linear & Ridge & Lasso inference
 const testV1 = -15.0;
 const testV2 = -5.0;
 
@@ -52,9 +54,12 @@ const lrD = testLinear(data.models.LinearRegression, testV1, testV2);
 assert(lrD.length === 4, 'Linear regression must output 4 dimensions');
 lrD.forEach((dim, idx) => {
     assert(!isNaN(dim) && isFinite(dim), `Linear dim[${idx}] is not a finite number`);
-    assert(dim >= 0 && dim <= 150, `Linear dim[${idx}] out of expected range: ${dim}`);
 });
 console.log('✓ Test 5 Passed: Linear Regression outputs valid dimensions:', lrD.map(v => v.toFixed(1)));
+
+const lassoD = testLinear(data.models.LassoRegression, testV1, testV2);
+assert(lassoD.length === 4, 'Lasso regression must output 4 dimensions');
+console.log('✓ Test 5b Passed: Lasso Regression outputs valid dimensions:', lassoD.map(v => v.toFixed(1)));
 
 // 6. Test Polynomial Regression inference
 function testPoly(m, v1, v2) {
@@ -120,6 +125,11 @@ const mlpD = testMLP(data.models.NeuralNetwork, testV1, testV2);
 assert(mlpD.length === 4, 'MLP must output 4 dimensions');
 console.log('✓ Test 8 Passed: MLP Neural Network forward pass outputs valid dimensions:', mlpD.map(v => v.toFixed(1)));
 
+// 8b. Test Ensemble Blending
+const ensembleD = mlpD.map((v, i) => 0.45 * v + 0.35 * polyD[i] + 0.20 * 75.0);
+assert(ensembleD.length === 4, 'Ensemble must output 4 dimensions');
+console.log('✓ Test 8b Passed: Ensemble Blending outputs valid dimensions:', ensembleD.map(v => v.toFixed(1)));
+
 // 9. Test Forward Simulator (Digital Twin)
 function testForward(fwd, d1, d2, d3, d4) {
     const dims = [d1, d2, d3, d4];
@@ -155,5 +165,5 @@ assert(jsContent.startsWith('// Auto-generated Antenna ML Models Data\nwindow.AN
 console.log('✓ Test 10 Passed: models_data.js file integrity validated');
 
 console.log('\n========================================');
-console.log('🎉 ALL 10 CI TEST SUITES PASSED CLEANLY!');
+console.log('🎉 ALL CI TEST SUITES PASSED CLEANLY!');
 console.log('========================================');

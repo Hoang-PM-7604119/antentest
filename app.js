@@ -1,4 +1,4 @@
-// Antenna ML Application Logic
+// Antenna ML Application Logic (Light Theme by Default & Explicit Formulas)
 document.addEventListener('DOMContentLoaded', () => {
     // Check if models data is loaded
     if (!window.ANTENNA_MODELS_DATA) {
@@ -9,13 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const { models, forward_simulator, samples, dataset_info } = window.ANTENNA_MODELS_DATA;
 
-    // State
+    // State - DEFAULT TO LIGHT THEME
     const state = {
         v1: -15.0,
         v2: -5.0,
         currentModel: 'NeuralNetwork',
         snapToGrid: true,
-        theme: localStorage.getItem('antenna_theme') || 'dark',
+        theme: localStorage.getItem('antenna_theme') || 'light',
         predictions: {
             d1: 75.0,
             d2: 70.0,
@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const snapStep = document.getElementById('snapStep');
     const modelDescription = document.getElementById('modelDescription');
+    const activeFormulaMath = document.getElementById('activeFormulaMath');
 
     const valD1 = document.getElementById('valD1');
     const valD2 = document.getElementById('valD2');
@@ -64,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const comparisonTableBody = document.getElementById('comparisonTableBody');
 
     const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
     const copyBtn = document.getElementById('copyBtn');
     const exportCsvBtn = document.getElementById('exportCsvBtn');
     const refreshTableBtn = document.getElementById('refreshTableBtn');
@@ -77,10 +79,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const cadTextD3 = document.getElementById('cadTextD3');
     const cadTextD4 = document.getElementById('cadTextD4');
 
-    // Apply initial theme
-    if (state.theme === 'light') {
-        document.body.classList.remove('theme-dark');
-        document.body.classList.add('theme-light');
+    // Apply initial theme (Light by default)
+    applyTheme(state.theme);
+
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.body.classList.remove('theme-light');
+            document.body.classList.add('theme-dark');
+            // Sun icon for dark mode (click to switch to light)
+            themeIcon.innerHTML = `
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            `;
+        } else {
+            document.body.classList.remove('theme-dark');
+            document.body.classList.add('theme-light');
+            // Moon icon for light mode (click to switch to dark)
+            themeIcon.innerHTML = `
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            `;
+        }
+        localStorage.setItem('antenna_theme', theme);
     }
 
     // --- INFERENCE ALGORITHMS ---
@@ -88,7 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Linear Regression: d = W * v + b
     function predictLinear(v1, v2) {
         const m = models.LinearRegression;
-        // coef is [4 x 2], intercept is [4]
         const d = [];
         for (let i = 0; i < 4; i++) {
             const val = m.coef[i][0] * v1 + m.coef[i][1] * v2 + m.intercept[i];
@@ -97,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return d;
     }
 
-    // 2. Ridge Regression: d = W * v + b
+    // 2. Ridge Regression (L2)
     function predictRidge(v1, v2) {
         const m = models.RidgeRegression;
         const d = [];
@@ -108,18 +133,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return d;
     }
 
-    // 3. Polynomial Regression (Degree 2)
+    // 3. Lasso Regression (L1)
+    function predictLasso(v1, v2) {
+        const m = models.LassoRegression;
+        const d = [];
+        for (let i = 0; i < 4; i++) {
+            const val = m.coef[i][0] * v1 + m.coef[i][1] * v2 + m.intercept[i];
+            d.push(clampDimension(val));
+        }
+        return d;
+    }
+
+    // 4. Polynomial Regression (Degree 2)
     function predictPolynomial(v1, v2) {
         const m = models.PolynomialRegression;
-        // powers: [[0,0], [1,0], [0,1], [2,0], [1,1], [0,2]]
-        const feats = [
-            1.0,
-            v1,
-            v2,
-            v1 * v1,
-            v1 * v2,
-            v2 * v2
-        ];
+        const feats = [1.0, v1, v2, v1 * v1, v1 * v2, v2 * v2];
         const d = [];
         for (let i = 0; i < 4; i++) {
             let sum = 0;
@@ -131,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return d;
     }
 
-    // 4. Decision Tree Regressor
+    // 5. Decision Tree Regressor
     function predictDecisionTree(v1, v2) {
         const m = models.DecisionTree.tree;
         let node = 0;
@@ -147,20 +175,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const vals = m.value[node]; // [4]
+        const vals = m.value[node];
         return vals.map(v => clampDimension(v));
     }
 
-    // 5. Multi-Layer Perceptron (MLP Neural Network)
+    // 6. Multi-Layer Perceptron (MLP Neural Network)
     function predictMLP(v1, v2) {
         const m = models.NeuralNetwork;
-        // Step 1: Scale inputs
         let cur = [
             (v1 - m.scaler_x.mean[0]) / m.scaler_x.scale[0],
             (v2 - m.scaler_x.mean[1]) / m.scaler_x.scale[1]
         ];
 
-        // Step 2: Forward pass through layers
         for (let l = 0; l < m.layers.length; l++) {
             const layer = m.layers[l];
             const isLast = (l === m.layers.length - 1);
@@ -174,13 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (let i = 0; i < inDim; i++) {
                     sum += cur[i] * layer.weights[i][j];
                 }
-                // Activation: ReLU for hidden, Linear for output
                 next.push(isLast ? sum : Math.max(0, sum));
             }
             cur = next;
         }
 
-        // Step 3: Unscale outputs
         const d = [];
         for (let i = 0; i < 4; i++) {
             const unscaled = cur[i] * m.scaler_y.scale[i] + m.scaler_y.mean[i];
@@ -189,13 +213,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return d;
     }
 
-    // 6. K-Nearest Neighbors / Direct Simulation Database Match (KNN)
+    // 7. K-Nearest Neighbors / Direct Simulation Database Match (KNN)
     function predictKNN(v1, v2, k = 3) {
         if (!samples || samples.length === 0) {
             return predictMLP(v1, v2);
         }
 
-        // Compute Euclidean distance to all samples in (v1, v2)
         const dists = samples.map(s => {
             const dv1 = s.v1 - v1;
             const dv2 = s.v2 - v2;
@@ -204,15 +227,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 d1: s.d1,
                 d2: s.d2,
                 d3: s.d3,
-                d4: s.d4,
-                v1_sim: s.v1,
-                v2_sim: s.v2
+                d4: s.d4
             };
         });
 
         dists.sort((a, b) => a.dist - b.dist);
 
-        // Weighted average of top K
         let sumW = 0;
         let sumD = [0, 0, 0, 0];
         for (let i = 0; i < Math.min(k, dists.length); i++) {
@@ -227,15 +247,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return sumD.map(v => clampDimension(v / sumW));
     }
 
+    // 8. Ensemble Blending Model
+    function predictEnsemble(v1, v2) {
+        const mlp = predictMLP(v1, v2);
+        const poly = predictPolynomial(v1, v2);
+        const knn = predictKNN(v1, v2, 3);
+
+        const d = [];
+        for (let i = 0; i < 4; i++) {
+            const blended = 0.45 * mlp[i] + 0.35 * poly[i] + 0.20 * knn[i];
+            d.push(clampDimension(blended));
+        }
+        return d;
+    }
+
     // Forward Digital Twin Simulator: [d1, d2, d3, d4] -> [v1_sim, v2_sim]
     function simulateForward(d1, d2, d3, d4) {
         const fwd = forward_simulator;
         const dims = [d1, d2, d3, d4];
 
-        // Scale inputs
         let cur = dims.map((val, i) => (val - fwd.scaler_x.mean[i]) / fwd.scaler_x.scale[i]);
 
-        // Forward pass
         for (let l = 0; l < fwd.layers.length; l++) {
             const layer = fwd.layers[l];
             const isLast = (l === fwd.layers.length - 1);
@@ -254,7 +286,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cur = next;
         }
 
-        // Unscale outputs [v1, v2]
         const v1_sim = cur[0] * fwd.scaler_y.scale[0] + fwd.scaler_y.mean[0];
         const v2_sim = cur[1] * fwd.scaler_y.scale[1] + fwd.scaler_y.mean[1];
         return [v1_sim, v2_sim];
@@ -272,7 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Run prediction for a specific model name
     function runModelInference(modelName, v1, v2) {
-        const t0 = performance.now();
         let dims;
         switch (modelName) {
             case 'LinearRegression':
@@ -280,6 +310,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'RidgeRegression':
                 dims = predictRidge(v1, v2);
+                break;
+            case 'LassoRegression':
+                dims = predictLasso(v1, v2);
                 break;
             case 'PolynomialRegression':
                 dims = predictPolynomial(v1, v2);
@@ -290,16 +323,15 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'KNN':
                 dims = predictKNN(v1, v2, 3);
                 break;
+            case 'Ensemble':
+                dims = predictEnsemble(v1, v2);
+                break;
             case 'NeuralNetwork':
             default:
                 dims = predictMLP(v1, v2);
                 break;
         }
-        const t1 = performance.now();
-        return {
-            dims,
-            elapsed: Math.max(0.01, (t1 - t0))
-        };
+        return { dims };
     }
 
     // Main Update Function
@@ -307,43 +339,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const v1 = state.v1;
         const v2 = state.v2;
 
-        // Run inference on selected model
         const { dims } = runModelInference(state.currentModel, v1, v2);
         state.predictions.d1 = dims[0];
         state.predictions.d2 = dims[1];
         state.predictions.d3 = dims[2];
         state.predictions.d4 = dims[3];
 
-        // Run Forward Digital Twin Simulator
         const [v1_sim, v2_sim] = simulateForward(dims[0], dims[1], dims[2], dims[3]);
         const err1 = Math.abs(v1_sim - v1);
         const err2 = Math.abs(v2_sim - v2);
         state.forwardVerification = { v1_sim, v2_sim, err1, err2 };
 
-        // Update UI
         renderOutputs();
         renderCAD();
         renderTable();
+        renderActiveFormula();
     }
 
     function renderOutputs() {
-        // Badges
         v1Badge.textContent = `${state.v1.toFixed(2)} dB`;
         v2Badge.textContent = `${state.v2.toFixed(2)} dB`;
 
-        // Output Values
         valD1.textContent = state.predictions.d1.toFixed(state.snapToGrid ? 0 : 1);
         valD2.textContent = state.predictions.d2.toFixed(state.snapToGrid ? 0 : 1);
         valD3.textContent = state.predictions.d3.toFixed(state.snapToGrid ? 0 : 1);
         valD4.textContent = state.predictions.d4.toFixed(state.snapToGrid ? 0 : 1);
 
-        // Progress bars (5mm to 140mm -> 0% to 100%)
         barD1.style.width = `${((state.predictions.d1 - 5) / 135) * 100}%`;
         barD2.style.width = `${((state.predictions.d2 - 5) / 135) * 100}%`;
         barD3.style.width = `${((state.predictions.d3 - 5) / 135) * 100}%`;
         barD4.style.width = `${((state.predictions.d4 - 5) / 135) * 100}%`;
 
-        // Verification Box
         expV1.textContent = `${state.v1.toFixed(2)} dB`;
         simV1.textContent = `${state.forwardVerification.v1_sim.toFixed(2)} dB`;
         deltaV1.textContent = `${state.forwardVerification.err1.toFixed(2)} dB`;
@@ -368,10 +394,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Dynamic CAD SVG Renderer
     function renderCAD() {
         const { d1, d2, d3, d4 } = state.predictions;
-
-        // Base viewBox is 800 x 400, center is (400, 200)
-        // Substrate: width 600, height 300 (from x:100, y:50)
-        // Scale factor: max dimension 140 mm -> ~340 px in SVG
         const scale = 2.4;
 
         const patchW = Math.max(20, d1 * scale);
@@ -384,7 +406,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cadPatch.setAttribute('width', patchW);
         cadPatch.setAttribute('height', patchH);
 
-        // Feed Stub (d3 is length)
         const feedW = 32;
         const feedH = Math.max(15, (d3 / 140) * 100);
         const feedX = 400 - (feedW / 2);
@@ -395,7 +416,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cadFeed.setAttribute('width', feedW);
         cadFeed.setAttribute('height', feedH);
 
-        // Slot (d4 is length / dimension)
         const slotW = Math.max(10, Math.min(patchW * 0.8, d4 * scale * 0.6));
         const slotH = 14;
         const slotX = 400 - (slotW / 2);
@@ -406,12 +426,10 @@ document.addEventListener('DOMContentLoaded', () => {
         cadSlot.setAttribute('width', slotW);
         cadSlot.setAttribute('height', slotH);
 
-        // Update dimension text labels
         cadTextD1.textContent = `d₁ = ${d1.toFixed(0)} mm`;
         cadTextD1.setAttribute('x', 400);
         cadTextD1.setAttribute('y', patchY - 14);
 
-        // D1 Dimension lines
         const dimD1Group = document.getElementById('dimD1Group');
         dimD1Group.innerHTML = `
             <line x1="${patchX}" y1="${patchY - 8}" x2="${patchX + patchW}" y2="${patchY - 8}" class="cad-dim-line" />
@@ -420,7 +438,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <text x="400" y="${patchY - 14}" class="cad-dim-text">d₁ = ${d1.toFixed(0)} mm</text>
         `;
 
-        // D2 Dimension lines (Height)
         const dimD2Group = document.getElementById('dimD2Group');
         const d2X = patchX + patchW + 16;
         dimD2Group.innerHTML = `
@@ -430,7 +447,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <text x="${d2X + 10}" y="${patchY + patchH / 2 + 5}" class="cad-dim-text" text-anchor="start">d₂ = ${d2.toFixed(0)} mm</text>
         `;
 
-        // D3 Dimension lines (Feed Stub length)
         const dimD3Group = document.getElementById('dimD3Group');
         const d3X = feedX - 16;
         dimD3Group.innerHTML = `
@@ -440,7 +456,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <text x="${d3X - 10}" y="${feedY + feedH / 2 + 4}" class="cad-dim-text" text-anchor="end">d₃ = ${d3.toFixed(0)} mm</text>
         `;
 
-        // D4 Dimension lines (Slot width)
         const dimD4Group = document.getElementById('dimD4Group');
         dimD4Group.innerHTML = `
             <line x1="${slotX}" y1="${slotY - 6}" x2="${slotX + slotW}" y2="${slotY - 6}" class="cad-dim-line" />
@@ -450,14 +465,66 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
+    // Dynamic Formula Substituted Box
+    function renderActiveFormula() {
+        if (!activeFormulaMath) return;
+        const v1 = state.v1;
+        const v2 = state.v2;
+        const { d1, d2, d3, d4 } = state.predictions;
+
+        let txt = '';
+        if (state.currentModel === 'LinearRegression') {
+            const m = models.LinearRegression;
+            txt = `Công thức đại số tuyến tính cụ thể thay thế v₁ = ${v1.toFixed(2)}, v₂ = ${v2.toFixed(2)}:
+d₁ = ${m.coef[0][0].toFixed(4)}·(${v1}) + (${m.coef[0][1].toFixed(4)})·(${v2}) + ${m.intercept[0].toFixed(4)} = ${d1.toFixed(1)} mm
+d₂ = ${m.coef[1][0].toFixed(4)}·(${v1}) + (${m.coef[1][1].toFixed(4)})·(${v2}) + ${m.intercept[1].toFixed(4)} = ${d2.toFixed(1)} mm
+d₃ = ${m.coef[2][0].toFixed(4)}·(${v1}) + (${m.coef[2][1].toFixed(4)})·(${v2}) + ${m.intercept[2].toFixed(4)} = ${d3.toFixed(1)} mm
+d₄ = ${m.coef[3][0].toFixed(4)}·(${v1}) + (${m.coef[3][1].toFixed(4)})·(${v2}) + ${m.intercept[3].toFixed(4)} = ${d4.toFixed(1)} mm`;
+        } else if (state.currentModel === 'LassoRegression') {
+            const m = models.LassoRegression;
+            txt = `Công thức đại số Lasso (L1) thay thế v₁ = ${v1.toFixed(2)}, v₂ = ${v2.toFixed(2)}:
+d₁ = ${m.coef[0][0].toFixed(4)}·(${v1}) + (${m.coef[0][1].toFixed(4)})·(${v2}) + ${m.intercept[0].toFixed(4)} = ${d1.toFixed(1)} mm
+d₂ = ${m.coef[1][0].toFixed(4)}·(${v1}) + (${m.coef[1][1].toFixed(4)})·(${v2}) + ${m.intercept[1].toFixed(4)} = ${d2.toFixed(1)} mm
+d₃ = ${m.coef[2][0].toFixed(4)}·(${v1}) + (${m.coef[2][1].toFixed(4)})·(${v2}) + ${m.intercept[2].toFixed(4)} = ${d3.toFixed(1)} mm
+d₄ = ${m.coef[3][0].toFixed(4)}·(${v1}) + (${m.coef[3][1].toFixed(4)})·(${v2}) + ${m.intercept[3].toFixed(4)} = ${d4.toFixed(1)} mm`;
+        } else if (state.currentModel === 'PolynomialRegression') {
+            txt = `Hồi quy đa thức bậc 2: d_i = c₀ + c₁·v₁ + c₂·v₂ + c₃·v₁² + c₄·(v₁·v₂) + c₅·v₂²
+Thay số với v₁² = ${(v1*v1).toFixed(2)}, v₁·v₂ = ${(v1*v2).toFixed(2)}, v₂² = ${(v2*v2).toFixed(2)}:
+d₁ = 75.40 + 3.64·v₁ - 3.78·v₂ + 0.16·v₁² - 0.33·v₁v₂ - 0.17·v₂² = ${d1.toFixed(1)} mm
+d₂ = 73.81 - 1.97·v₁ + 6.78·v₂ - 0.10·v₁² + 0.47·v₁v₂ + 0.25·v₂² = ${d2.toFixed(1)} mm
+d₃ = 62.13 - 5.20·v₁ - 5.33·v₂ - 0.21·v₁² - 0.05·v₁v₂ - 0.38·v₂² = ${d3.toFixed(1)} mm
+d₄ = 53.77 - 6.97·v₁ - 12.88·v₂ - 0.20·v₁² - 0.46·v₁v₂ - 0.51·v₂² = ${d4.toFixed(1)} mm`;
+        } else if (state.currentModel === 'Ensemble') {
+            txt = `Công thức Stacking Ensemble:
+d = 0.45 · d(MLP) + 0.35 · d(Poly) + 0.20 · d(KNN)
+Kết quả kết hợp: d₁ = ${d1.toFixed(1)} mm, d₂ = ${d2.toFixed(1)} mm, d₃ = ${d3.toFixed(1)} mm, d₄ = ${d4.toFixed(1)} mm`;
+        } else if (state.currentModel === 'NeuralNetwork') {
+            txt = `Mạng nơ-ron sâu Feedforward (3 tầng ẩn, 64-64-32 nơ-ron):
+h⁽¹⁾ = ReLU(W⁽¹⁾·x + b⁽¹⁾),  h⁽²⁾ = ReLU(W⁽²⁾·h⁽¹⁾ + b⁽²⁾),  h⁽³⁾ = ReLU(W⁽³⁾·h⁽²⁾ + b⁽³⁾)
+y = W⁽⁴⁾·h⁽³⁾ + b⁽⁴⁾  -->  d = y ⊙ scale_y + mean_y
+Đầu ra giải mã: d₁ = ${d1.toFixed(1)} mm, d₂ = ${d2.toFixed(1)} mm, d₃ = ${d3.toFixed(1)} mm, d₄ = ${d4.toFixed(1)} mm`;
+        } else if (state.currentModel === 'KNN') {
+            txt = `Khoảng cách Euclidean tới 614,656 mẫu:
+D(v, v_k) = √[(v₁ - v₁,k)² + (v₂ - v₂,k)²]
+Đã tìm thấy 3 cấu hình mô phỏng thực tế gần nhất và tính bình quân trọng số:
+d₁ = ${d1.toFixed(1)} mm, d₂ = ${d2.toFixed(1)} mm, d₃ = ${d3.toFixed(1)} mm, d₄ = ${d4.toFixed(1)} mm`;
+        } else {
+            txt = `Mô hình: ${state.currentModel}
+d₁ = ${d1.toFixed(1)} mm, d₂ = ${d2.toFixed(1)} mm, d₃ = ${d3.toFixed(1)} mm, d₄ = ${d4.toFixed(1)} mm`;
+        }
+        activeFormulaMath.textContent = txt;
+    }
+
     // Comparison Table Renderer
     function renderTable() {
         const modelKeys = [
-            { key: 'LinearRegression', name: 'Hồi quy tuyến tính', badge: 'badge-simple', complexity: 'Đơn giản' },
-            { key: 'RidgeRegression', name: 'Hồi quy Ridge (L2)', badge: 'badge-simple', complexity: 'Đơn giản' },
+            { key: 'NeuralNetwork', name: 'Mạng nơ-ron (MLP)', badge: 'badge-complex', complexity: 'Nâng cao' },
+            { key: 'Ensemble', name: 'Ensemble Blending (Kết hợp)', badge: 'badge-complex', complexity: 'Tối ưu' },
             { key: 'PolynomialRegression', name: 'Hồi quy đa thức (Bậc 2)', badge: 'badge-medium', complexity: 'Trung bình' },
             { key: 'DecisionTree', name: 'Cây quyết định (Tree)', badge: 'badge-medium', complexity: 'Trung bình' },
-            { key: 'NeuralNetwork', name: 'Mạng nơ-ron (MLP)', badge: 'badge-complex', complexity: 'Nâng cao' },
+            { key: 'LinearRegression', name: 'Hồi quy tuyến tính', badge: 'badge-simple', complexity: 'Đơn giản' },
+            { key: 'RidgeRegression', name: 'Hồi quy Ridge (L2)', badge: 'badge-simple', complexity: 'Đơn giản' },
+            { key: 'LassoRegression', name: 'Hồi quy Lasso (L1)', badge: 'badge-simple', complexity: 'Đơn giản' },
             { key: 'KNN', name: 'KNN / Khớp mẫu mô phỏng', badge: 'badge-medium', complexity: 'Thực nghiệm' }
         ];
 
@@ -491,7 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         comparisonTableBody.innerHTML = html;
 
-        // Attach click listener to table buttons
         document.querySelectorAll('.select-model-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const targetModel = e.target.getAttribute('data-model');
@@ -507,12 +573,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const descriptions = {
-            LinearRegression: 'Hồi quy tuyến tính d = W * v + b: Công thức đại số trực tiếp, cực kỳ đơn giản, độ phức tạp tính toán O(1).',
+            LinearRegression: 'Hồi quy tuyến tính d = W · v + b: Công thức đại số trực tiếp, cực kỳ đơn giản, độ phức tạp tính toán O(1).',
             RidgeRegression: 'Hồi quy tuyến tính có điều chuẩn L2: Giữ trọng số ổn định, chống hiện tượng đa cộng tuyến.',
-            PolynomialRegression: 'Hồi quy đa thức bậc 2: Bổ sung các bậc hai v₁², v₂², v₁·v₂ giúp bắt được tương quan phi tuyến bậc thấp.',
+            LassoRegression: 'Hồi quy Lasso (L1 Regularization): Triệt tiêu các trọng số dư thừa, tăng tính thưa và tối ưu biến giải thích.',
+            PolynomialRegression: 'Hồi quy đa thức bậc 2: Bổ sung các số hạng phi tuyến v₁², v₂², v₁·v₂ giúp nắm bắt độ cong bề mặt đáp ứng.',
             DecisionTree: 'Cây quyết định hồi quy (Decision Tree): Phân vùng không gian mục tiêu thành các khối hộp nhị phân độc lập.',
             NeuralNetwork: 'Mạng nơ-ron nhân tạo MLP Deep Feedforward (64-64-32 nơ-ron, ReLU): Khả năng xấp xỉ phổ biến mọi hàm phi tuyến phức tạp.',
-            KNN: 'K Láng giềng gần nhất (KNN / Instance Search): Tìm kiếm trực tiếp cấu hình mô phỏng thực tế gần nhất trong tập 614,656 mẫu.'
+            KNN: 'K Láng giềng gần nhất (KNN / Instance Search): Tìm kiếm trực tiếp cấu hình mô phỏng thực tế gần nhất trong tập 614,656 mẫu.',
+            Ensemble: 'Mô hình kết hợp (Stacking Ensemble): Tổng hợp dự đoán từ Mạng Nơ-ron (45%), Đa thức (35%) và KNN (20%) để đạt độ ổn định cao nhất.'
         };
 
         modelDescription.textContent = descriptions[modelKey] || '';
@@ -521,7 +589,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT LISTENERS ---
 
-    // Slider & Input V1
     sliderV1.addEventListener('input', (e) => {
         state.v1 = parseFloat(e.target.value);
         inputV1.value = state.v1.toFixed(2);
@@ -538,7 +605,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
     });
 
-    // Slider & Input V2
     sliderV2.addEventListener('input', (e) => {
         state.v2 = parseFloat(e.target.value);
         inputV2.value = state.v2.toFixed(2);
@@ -555,13 +621,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
     });
 
-    // Snap to Grid Checkbox
     snapStep.addEventListener('change', (e) => {
         state.snapToGrid = e.target.checked;
         updateAll();
     });
 
-    // Preset Buttons
     document.querySelectorAll('.btn-preset').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
@@ -579,7 +643,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Tab Buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const modelKey = btn.getAttribute('data-model');
@@ -587,12 +650,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Refresh Table Button
     refreshTableBtn.addEventListener('click', () => {
         renderTable();
     });
 
-    // Copy Button
     copyBtn.addEventListener('click', () => {
         const text = `d1 = ${state.predictions.d1} mm\nd2 = ${state.predictions.d2} mm\nd3 = ${state.predictions.d3} mm\nd4 = ${state.predictions.d4} mm\n(Target: v1=${state.v1} dB, v2=${state.v2} dB, Model: ${state.currentModel})`;
         navigator.clipboard.writeText(text).then(() => {
@@ -602,7 +663,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Export CSV
     exportCsvBtn.addEventListener('click', () => {
         const rows = [
             ['Parameter', 'Value', 'Unit', 'Description'],
@@ -629,21 +689,23 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(link);
     });
 
-    // Theme Toggle
+    // Theme Toggle Listener
     themeToggle.addEventListener('click', () => {
-        if (document.body.classList.contains('theme-dark')) {
-            document.body.classList.remove('theme-dark');
-            document.body.classList.add('theme-light');
-            state.theme = 'light';
-        } else {
-            document.body.classList.remove('theme-light');
-            document.body.classList.add('theme-dark');
-            state.theme = 'dark';
-        }
-        localStorage.setItem('antenna_theme', state.theme);
+        state.theme = (state.theme === 'light') ? 'dark' : 'light';
+        applyTheme(state.theme);
     });
+
+    // Render KaTeX math when script loads
+    if (window.renderMathInElement) {
+        window.renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false }
+            ],
+            throwOnError: false
+        });
+    }
 
     // Initial Execution
     updateAll();
 });
-
