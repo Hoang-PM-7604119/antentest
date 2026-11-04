@@ -425,12 +425,13 @@ y₂ = ${m.coef[1][0].toFixed(4)}·(${x1}) + (${m.coef[1][1].toFixed(4)})·(${x2
 y₃ = ${m.coef[2][0].toFixed(4)}·(${x1}) + (${m.coef[2][1].toFixed(4)})·(${x2}) + ${m.intercept[2].toFixed(4)} = ${y[2].toFixed(1)}
 y₄ = ${m.coef[3][0].toFixed(4)}·(${x1}) + (${m.coef[3][1].toFixed(4)})·(${x2}) + ${m.intercept[3].toFixed(4)} = ${y[3].toFixed(1)}`;
         } else if (state.activeModel === 'PolynomialRegression') {
+            const p = models.PolynomialRegression;
             terminalTitle.textContent = 'polynomial_surface_eval.py';
-            txt = `# Hồi quy Đa thức bậc 2: y_i = c₀ + c₁·x₁ + c₂·x₂ + c₃·x₁² + c₄·(x₁·x₂) + c₅·x₂²
-y₁ = 75.40 + 3.64·x₁ - 3.78·x₂ + 0.16·x₁² - 0.33·x₁x₂ - 0.17·x₂² = ${y[0].toFixed(1)}
-y₂ = 73.81 - 1.97·x₁ + 6.78·x₂ - 0.10·x₁² + 0.47·x₁x₂ + 0.25·x₂² = ${y[1].toFixed(1)}
-y₃ = 62.13 - 5.20·x₁ - 5.33·x₂ - 0.21·x₁² - 0.05·x₁x₂ - 0.38·x₂² = ${y[2].toFixed(1)}
-y₄ = 53.77 - 6.97·x₁ - 12.88·x₂ - 0.20·x₁² - 0.46·x₁x₂ - 0.51·x₂² = ${y[3].toFixed(1)}`;
+            txt = `# Hồi quy Đa thức bậc 2: y_i = c₀ + c₁·x₁ + c₂·x₂ + c₃·x₁² + c₄·(x₁·x₂) + c₅·x₂²\n` +
+            [0, 1, 2, 3].map(i => {
+                const c = p.coef[i];
+                return `y${i+1} = ${c[0].toFixed(4)} + (${c[1].toFixed(4)})·(${x1.toFixed(2)}) + (${c[2].toFixed(4)})·(${x2.toFixed(2)}) + (${c[3].toFixed(4)})·x₁² + (${c[4].toFixed(4)})·x₁x₂ + (${c[5].toFixed(4)})·x₂² = ${y[i].toFixed(1)}`;
+            }).join('\n');
         } else if (state.activeModel === 'Ensemble') {
             terminalTitle.textContent = 'stacking_ensemble_eval.py';
             txt = `# Mô hình Tổ Hợp Tối Ưu (Stacking Ensemble Blending):

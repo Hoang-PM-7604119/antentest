@@ -1,5 +1,7 @@
-# Large raw dataset (30MB Excel file)
+# Large raw datasets (30MB Excel files)
 data1.xlsx
+data2_f1.xlsx
+*.xlsx
 
 # Python & Environment
 __pycache__/
