@@ -304,3 +304,4 @@ for i, col in enumerate(output_cols):
     w = results['SVM']['coef'][i]
     b = results['SVM']['intercept'][i]
     print(f"  {col} (y{i+1}) = ({w[0]:.4f})*x1 + ({w[1]:.4f})*x2 + ({b:.4f})")
+

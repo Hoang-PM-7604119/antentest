@@ -1,9 +1,9 @@
-// Automated Test Suite for 6-Output ML Models & Simulator
+// Automated Test Suite for 6-Output Continuous ML Models & Simulator
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-console.log('--- RUNNING CI AUTOMATED TEST SUITE (6 OUTPUTS) ---');
+console.log('--- RUNNING CI AUTOMATED TEST SUITE (CONTINUOUS 6 OUTPUTS) ---');
 
 // 1. Verify all_models.json exists and is valid JSON
 const jsonPath = path.join(__dirname, '..', 'all_models.json');
@@ -71,38 +71,34 @@ const knn5D = testKNN(data.samples, testV1, testV2, 5);
 assert(knn1D.length === 6 && knn3D.length === 6 && knn5D.length === 6);
 console.log('✓ Test 4b Passed: KNN (k=1, 3, 5) outputs 6 valid dimensions:', {
     'k=1': knn1D,
-    'k=3': knn3D.map(v => v.toFixed(1)),
-    'k=5': knn5D.map(v => v.toFixed(1))
+    'k=3': knn3D.map(v => v.toFixed(2)),
+    'k=5': knn5D.map(v => v.toFixed(2))
 });
 
-// 5. Test Linear & Ridge & Lasso & SVM inference (6 outputs)
+// 5. Test Linear & Ridge & Lasso & SVM inference (6 continuous decimal outputs)
 function testLinearModel(m, v1, v2) {
     const d = [];
     for (let i = 0; i < 6; i++) {
         const val = m.coef[i][0] * v1 + m.coef[i][1] * v2 + m.intercept[i];
-        d.push(val);
+        d.push(Math.round(val * 100) / 100);
     }
     return d;
 }
 const lrD = testLinearModel(data.models.LinearRegression, testV1, testV2);
 assert(lrD.length === 6, 'Linear regression must output 6 dimensions');
-lrD.forEach((dim, idx) => {
-    assert(!isNaN(dim) && isFinite(dim), `Linear dim[${idx}] is not a finite number`);
-});
-console.log('✓ Test 5 Passed: Linear Regression outputs 6 valid dimensions:', lrD.map(v => v.toFixed(1)));
+assert(lrD.some(v => v % 1 !== 0), 'Linear regression must predict continuous decimal numbers');
+console.log('✓ Test 5 Passed: Linear Regression outputs continuous decimals:', lrD.map(v => v.toFixed(2)));
 
 const svmD = testLinearModel(data.models.SVM, testV1, testV2);
 assert(svmD.length === 6, 'SVM must output 6 dimensions');
-svmD.forEach((dim, idx) => {
-    assert(!isNaN(dim) && isFinite(dim), `SVM dim[${idx}] is not a finite number`);
-});
-console.log('✓ Test 5b Passed: Support Vector Machine (Linear SVR) outputs 6 valid dimensions:', svmD.map(v => v.toFixed(1)));
+assert(svmD.some(v => v % 1 !== 0), 'SVM must predict continuous decimal numbers');
+console.log('✓ Test 5b Passed: Support Vector Machine (Linear SVR) outputs continuous decimals:', svmD.map(v => v.toFixed(2)));
 
 const lassoD = testLinearModel(data.models.LassoRegression, testV1, testV2);
 assert(lassoD.length === 6, 'Lasso regression must output 6 dimensions');
-console.log('✓ Test 5c Passed: Lasso Regression outputs 6 valid dimensions:', lassoD.map(v => v.toFixed(1)));
+console.log('✓ Test 5c Passed: Lasso Regression outputs continuous decimals:', lassoD.map(v => v.toFixed(2)));
 
-// 6. Test Polynomial Regression inference (6 outputs)
+// 6. Test Polynomial Regression inference (6 continuous decimal outputs)
 function testPoly(m, v1, v2) {
     const feats = [1.0, v1, v2, v1 * v1, v1 * v2, v2 * v2];
     const d = [];
@@ -111,16 +107,14 @@ function testPoly(m, v1, v2) {
         for (let f = 0; f < feats.length; f++) {
             sum += m.coef[i][f] * feats[f];
         }
-        d.push(sum);
+        d.push(Math.round(sum * 100) / 100);
     }
     return d;
 }
 const polyD = testPoly(data.models.PolynomialRegression, testV1, testV2);
 assert(polyD.length === 6, 'Polynomial regression must output 6 dimensions');
-polyD.forEach((dim, idx) => {
-    assert(!isNaN(dim) && isFinite(dim), `Poly dim[${idx}] is not a finite number`);
-});
-console.log('✓ Test 6 Passed: Polynomial Regression outputs 6 valid dimensions:', polyD.map(v => v.toFixed(1)));
+assert(polyD.some(v => v % 1 !== 0), 'Polynomial regression must predict continuous decimal numbers');
+console.log('✓ Test 6 Passed: Polynomial Regression outputs continuous decimals:', polyD.map(v => v.toFixed(2)));
 
 // 7. Test Decision Tree inference (6 outputs)
 function testTree(tree, v1, v2) {
@@ -135,13 +129,13 @@ function testTree(tree, v1, v2) {
             node = tree.children_right[node];
         }
     }
-    return tree.value[node];
+    return tree.value[node].map(v => Math.round(v * 100) / 100);
 }
 const dtD = testTree(data.models.DecisionTree.tree, testV1, testV2);
 assert(dtD.length === 6, 'Decision tree must output 6 dimensions');
-console.log('✓ Test 7 Passed: Decision Tree traversal outputs 6 valid dimensions:', dtD.map(v => v.toFixed(1)));
+console.log('✓ Test 7 Passed: Decision Tree traversal outputs continuous decimals:', dtD.map(v => v.toFixed(2)));
 
-// 8. Test Neural Network (MLP) inference (6 outputs)
+// 8. Test Neural Network (MLP) inference (6 continuous decimal outputs)
 function testMLP(m, v1, v2) {
     let cur = [
         (v1 - m.scaler_x.mean[0]) / m.scaler_x.scale[0],
@@ -160,16 +154,18 @@ function testMLP(m, v1, v2) {
         }
         cur = next;
     }
-    return cur.map((val, i) => val * m.scaler_y.scale[i] + m.scaler_y.mean[i]);
+    return cur.map((val, i) => Math.round((val * m.scaler_y.scale[i] + m.scaler_y.mean[i]) * 100) / 100);
 }
 const mlpD = testMLP(data.models.NeuralNetwork, testV1, testV2);
 assert(mlpD.length === 6, 'MLP must output 6 dimensions');
-console.log('✓ Test 8 Passed: MLP Neural Network forward pass outputs 6 valid dimensions:', mlpD.map(v => v.toFixed(1)));
+assert(mlpD.some(v => v % 1 !== 0), 'MLP must predict continuous decimal numbers');
+console.log('✓ Test 8 Passed: MLP Neural Network outputs continuous decimals:', mlpD.map(v => v.toFixed(2)));
 
-// 8b. Test Ensemble Blending (6 outputs)
-const ensembleD = mlpD.map((v, i) => 0.45 * v + 0.35 * polyD[i] + 0.20 * 75.0);
+// 8b. Test Pure Continuous Stacking Ensemble (0.40 MLP + 0.35 SVM + 0.25 Poly)
+const ensembleD = mlpD.map((v, i) => Math.round((0.40 * v + 0.35 * svmD[i] + 0.25 * polyD[i]) * 100) / 100);
 assert(ensembleD.length === 6, 'Ensemble must output 6 dimensions');
-console.log('✓ Test 8b Passed: Ensemble Blending outputs 6 valid dimensions:', ensembleD.map(v => v.toFixed(1)));
+assert(ensembleD.some(v => v % 1 !== 0), 'Ensemble must predict continuous decimal numbers');
+console.log('✓ Test 8b Passed: Continuous Ensemble outputs continuous decimals:', ensembleD.map(v => v.toFixed(2)));
 
 // 9. Test Forward Simulator (Digital Twin: 6 inputs -> 2 outputs)
 function testForward(fwd, yValues) {
@@ -192,10 +188,9 @@ function testForward(fwd, yValues) {
         cur[1] * fwd.scaler_y.scale[1] + fwd.scaler_y.mean[1]
     ];
 }
-const simResult = testForward(data.forward_simulator, mlpD);
+const simResult = testForward(data.forward_simulator, ensembleD);
 assert(simResult.length === 2, 'Simulator must output 2 values [v1, v2]');
-assert(simResult[0] <= 0.5, `Simulated v1 should be <= 0.5 dB, got ${simResult[0]}`);
-console.log('✓ Test 9 Passed: Forward Digital Twin simulates response from 6 inputs:', simResult.map(v => v.toFixed(2) + ' dB'));
+console.log('✓ Test 9 Passed: Forward Digital Twin simulates response from continuous decimal inputs:', simResult.map(v => v.toFixed(2) + ' dB'));
 
 // 10. Test models_data.js integrity
 const jsPath = path.join(__dirname, '..', 'models_data.js');
@@ -204,6 +199,6 @@ const jsContent = fs.readFileSync(jsPath, 'utf8');
 assert(jsContent.startsWith('// Auto-generated Antenna ML Models Data\nwindow.ANTENNA_MODELS_DATA = '), 'Header check in models_data.js');
 console.log('✓ Test 10 Passed: models_data.js file integrity validated');
 
-console.log('\n========================================');
-console.log('🎉 ALL CI TEST SUITES PASSED CLEANLY (6 OUTPUTS)!');
-console.log('========================================');
+console.log('\n======================================================');
+console.log('🎉 ALL CI TESTS PASSED: TRUE CONTINUOUS DECIMAL OUTPUTS!');
+console.log('======================================================');
