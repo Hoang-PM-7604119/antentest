@@ -1,4 +1,4 @@
-// Multi-Output ML Predictor & All-Algorithm Comparison Logic (6 Outputs, 2 Inputs)
+// Multi-Output ML Predictor & Live Computation Visualizer (6 Outputs, 2 Inputs)
 // Pure Continuous Regression Models: Outputs real decimal numbers (số lẻ, số thập phân)
 document.addEventListener('DOMContentLoaded', () => {
     if (!window.ANTENNA_MODELS_DATA) {
@@ -101,16 +101,21 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     const OUTPUT_NAMES = ['t3', 't2', 't1', 'z3', 'z2', 'z1'];
+    const OUTPUT_LABELS = ['Cột 1 (t₃)', 'Cột 2 (t₂)', 'Cột 3 (t₁)', 'Cột 4 (z₃)', 'Cột 5 (z₂)', 'Cột 6 (z₁)'];
+    const OUTPUT_COLORS = ['#2563eb', '#0891b2', '#059669', '#d97706', '#8b5cf6', '#e11d48'];
 
     // State
     const state = {
         x1: -15.0,
         x2: -5.0,
         activeModel: 'Ensemble',
-        allPredictions: {}
+        allPredictions: {},
+        vizTab: 'radar',
+        compareModel: 'none',
+        animTick: 0
     };
 
-    // DOM Elements
+    // DOM Elements - Section 1
     const sliderX1 = document.getElementById('sliderX1');
     const inputX1 = document.getElementById('inputX1');
     const x1Badge = document.getElementById('x1Badge');
@@ -120,8 +125,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const x2Badge = document.getElementById('x2Badge');
 
     const resetBtn = document.getElementById('resetBtn');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+
+    // Section 2
     const comparisonTableBody = document.getElementById('comparisonTableBody');
 
+    // Section 3
     const activeModelTitle = document.getElementById('activeModelTitle');
     const valY1 = document.getElementById('valY1');
     const valY2 = document.getElementById('valY2');
@@ -149,7 +158,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const formulaCode = document.getElementById('formulaCode');
     const copyActiveBtn = document.getElementById('copyActiveBtn');
     const copyFormulaBtn = document.getElementById('copyFormulaBtn');
-    const exportCsvBtn = document.getElementById('exportCsvBtn');
+
+    // Section 4 Visualizer Elements
+    const tabRadar = document.getElementById('tabRadar');
+    const tabNetwork = document.getElementById('tabNetwork');
+    const tabBreakdown = document.getElementById('tabBreakdown');
+    const vizCanvas = document.getElementById('vizCanvas');
+    const vizDynamicTitle = document.getElementById('vizDynamicTitle');
+    const vizCompareSelect = document.getElementById('vizCompareSelect');
+    const vizFooterHint = document.getElementById('vizFooterHint');
+
+    const pipeZ1 = document.getElementById('pipeZ1');
+    const pipeZ2 = document.getElementById('pipeZ2');
+    const pipeStep2Name = document.getElementById('pipeStep2Name');
+    const pipeStep2Desc = document.getElementById('pipeStep2Desc');
+    const pipeStep2Math = document.getElementById('pipeStep2Math');
+    const pipeModelType = document.getElementById('pipeModelType');
+    const pipeDelta = document.getElementById('pipeDelta');
+
+    const decompModelName = document.getElementById('decompModelName');
+    const decompTableBody = document.getElementById('decompTableBody');
+
+    // Canvas 2D Context
+    let ctx = null;
+    if (vizCanvas) {
+        ctx = vizCanvas.getContext('2d');
+    }
 
     // Clamp helper: Keeps output in physical boundary [5.0, 140.0], preserves real continuous decimal (2 decimal digits)
     function clampOutput(val) {
@@ -545,6 +579,617 @@ document.addEventListener('DOMContentLoaded', () => {
         formulaCode.textContent = txt;
     }
 
+    // =========================================================================
+    // SECTION 4: COMPUTATION MECHANISM & LIVE VISUALIZER
+    // =========================================================================
+
+    // Update 4-step pipeline and dimension decomposition table
+    function updatePipelineAndDecomp() {
+        if (!pipeZ1 || !pipeZ2) return;
+
+        // Step 1 Z-Score
+        const mlp = models.NeuralNetwork;
+        const z1 = (state.x1 - mlp.scaler_x.mean[0]) / mlp.scaler_x.scale[0];
+        const z2 = (state.x2 - mlp.scaler_x.mean[1]) / mlp.scaler_x.scale[1];
+        pipeZ1.textContent = z1.toFixed(3);
+        pipeZ2.textContent = z2.toFixed(3);
+
+        // Step 2 Core Algo info
+        const meta = MODEL_META.find(m => m.id === state.activeModel) || MODEL_META[0];
+        pipeStep2Name.textContent = meta.name;
+        if (state.activeModel === 'SVM') {
+            pipeStep2Desc.textContent = 'Nhân ma trận siêu phẳng tối ưu lề lồi giải tích L2 (Epsilon-Insensitive):';
+            pipeStep2Math.textContent = 'y_i = w_{i1}·x₁ + w_{i2}·x₂ + b_i';
+            pipeModelType.textContent = 'Siêu phẳng lề cực đại giải tích';
+        } else if (state.activeModel === 'NeuralNetwork') {
+            pipeStep2Desc.textContent = 'Lan truyền tiến qua 3 tầng ẩn 64-64-32 nơ-ron với hàm kích hoạt ReLU:';
+            pipeStep2Math.textContent = 'h^(l) = ReLU(W^(l)·h^(l-1) + b^(l))';
+            pipeModelType.textContent = 'Mạng Deep Feedforward 3 tầng ẩn';
+        } else if (state.activeModel === 'PolynomialRegression') {
+            pipeStep2Desc.textContent = 'Mở rộng đặc trưng phi tuyến và nhân ma trận hệ số mặt cong 6 chiều:';
+            pipeStep2Math.textContent = 'y_i = c₀ + c₁·x₁ + c₂·x₂ + c₃·x₁² + c₄·x₁x₂ + c₅·x₂²';
+            pipeModelType.textContent = 'Hồi quy đa thức bậc 2 phi tuyến';
+        } else if (state.activeModel === 'Ensemble') {
+            pipeStep2Desc.textContent = 'Tổng hợp trọng số tối ưu từ 3 mô hình liên tục (Không tra cứu database):';
+            pipeStep2Math.textContent = 'y = 0.40·MLP + 0.35·SVM + 0.25·Poly';
+            pipeModelType.textContent = 'Tổ hợp hồi quy liên tục (Stacking)';
+        } else if (state.activeModel === 'DecisionTree') {
+            pipeStep2Desc.textContent = 'Duyệt cây nhị phân đa đầu ra từ nút gốc đến nút lá:';
+            pipeStep2Math.textContent = 'Nút lá: trung bình vector 6 chiều';
+            pipeModelType.textContent = 'Cây quyết định hồi quy đa đầu ra';
+        } else {
+            pipeStep2Desc.textContent = 'Tính hàm tuyến tính đa biến:';
+            pipeStep2Math.textContent = 'y = W·x + b';
+            pipeModelType.textContent = 'Hồi quy tuyến tính ma trận';
+        }
+
+        // Step 4 Delta
+        const activeRes = state.allPredictions[state.activeModel];
+        if (activeRes && pipeDelta) {
+            pipeDelta.textContent = `±${activeRes.meanErr.toFixed(2)} dB`;
+        }
+
+        // Decomposition Table
+        if (decompModelName) decompModelName.textContent = meta.name;
+        if (!decompTableBody || !activeRes) return;
+
+        let tableHtml = '';
+        const y = activeRes.y;
+        const x1 = state.x1;
+        const x2 = state.x2;
+
+        for (let i = 0; i < 6; i++) {
+            const varName = OUTPUT_NAMES[i];
+            const varLabel = OUTPUT_LABELS[i];
+            const finalVal = y[i].toFixed(2);
+
+            let formulaTxt = '';
+            let comp1Txt = '---';
+            let comp2Txt = '---';
+            let biasTxt = '---';
+            let rawSumTxt = finalVal;
+
+            if (state.activeModel === 'LinearRegression' || state.activeModel === 'RidgeRegression' || state.activeModel === 'LassoRegression' || state.activeModel === 'SVM') {
+                const m = models[state.activeModel];
+                const w1 = m.coef[i][0];
+                const w2 = m.coef[i][1];
+                const b = m.intercept[i];
+                const c1 = w1 * x1;
+                const c2 = w2 * x2;
+                const rawSum = c1 + c2 + b;
+
+                formulaTxt = `(${w1.toFixed(4)})·x₁ + (${w2.toFixed(4)})·x₂ + ${b.toFixed(4)}`;
+                comp1Txt = `<span class="${c1 >= 0 ? 'decomp-num-pos' : 'decomp-num-neg'}">${c1 >= 0 ? '+' : ''}${c1.toFixed(2)}</span>`;
+                comp2Txt = `<span class="${c2 >= 0 ? 'decomp-num-pos' : 'decomp-num-neg'}">${c2 >= 0 ? '+' : ''}${c2.toFixed(2)}</span>`;
+                biasTxt = `<span>${b >= 0 ? '+' : ''}${b.toFixed(2)}</span>`;
+                rawSumTxt = rawSum.toFixed(2);
+            } else if (state.activeModel === 'PolynomialRegression') {
+                const p = models.PolynomialRegression;
+                const c = p.coef[i];
+                const c1 = c[1] * x1 + c[3] * x1 * x1;
+                const c2 = c[2] * x2 + c[5] * x2 * x2;
+                const c12 = c[4] * x1 * x2;
+                const b = c[0];
+                const rawSum = b + c1 + c2 + c12;
+
+                formulaTxt = `${c[0].toFixed(2)} + ${c[1].toFixed(2)}x₁ + ${c[2].toFixed(2)}x₂ + ${c[3].toFixed(3)}x₁² + ...`;
+                comp1Txt = `<span class="${c1 >= 0 ? 'decomp-num-pos' : 'decomp-num-neg'}">${c1 >= 0 ? '+' : ''}${c1.toFixed(2)}</span> (x₁+x₁²)`;
+                comp2Txt = `<span class="${c2 >= 0 ? 'decomp-num-pos' : 'decomp-num-neg'}">${c2 >= 0 ? '+' : ''}${c2.toFixed(2)}</span> (x₂+x₂²)`;
+                biasTxt = `<span>+${b.toFixed(2)}</span>`;
+                rawSumTxt = rawSum.toFixed(2);
+            } else if (state.activeModel === 'Ensemble') {
+                const mlpVal = state.allPredictions['NeuralNetwork'] ? state.allPredictions['NeuralNetwork'].y[i] : y[i];
+                const svmVal = state.allPredictions['SVM'] ? state.allPredictions['SVM'].y[i] : y[i];
+                const polyVal = state.allPredictions['PolynomialRegression'] ? state.allPredictions['PolynomialRegression'].y[i] : y[i];
+
+                const pMlp = 0.40 * mlpVal;
+                const pSvm = 0.35 * svmVal;
+                const pPoly = 0.25 * polyVal;
+
+                formulaTxt = `0.40·MLP + 0.35·SVM + 0.25·Poly`;
+                comp1Txt = `<span class="decomp-num-pos">+${pMlp.toFixed(2)}</span> (40% MLP)`;
+                comp2Txt = `<span class="decomp-num-pos">+${pSvm.toFixed(2)}</span> (35% SVM)`;
+                biasTxt = `<span class="decomp-num-pos">+${pPoly.toFixed(2)}</span> (25% Poly)`;
+                rawSumTxt = (pMlp + pSvm + pPoly).toFixed(2);
+            } else if (state.activeModel === 'NeuralNetwork') {
+                formulaTxt = `Lan truyền tiến Feedforward (3 tầng ẩn)`;
+                comp1Txt = `Tín hiệu z₁ = ${z1.toFixed(2)}`;
+                comp2Txt = `Tín hiệu z₂ = ${z2.toFixed(2)}`;
+                biasTxt = `Hệ số bù bias các tầng`;
+                rawSumTxt = finalVal;
+            } else {
+                formulaTxt = `Nội suy / Phân vùng`;
+                comp1Txt = `x₁ = ${x1.toFixed(2)}`;
+                comp2Txt = `x₂ = ${x2.toFixed(2)}`;
+                biasTxt = `Tham chiếu lân cận`;
+                rawSumTxt = finalVal;
+            }
+
+            tableHtml += `
+            <tr>
+                <td><strong>${varLabel}</strong></td>
+                <td class="decomp-math-cell"><code>${formulaTxt}</code></td>
+                <td>${comp1Txt}</td>
+                <td>${comp2Txt}</td>
+                <td>${biasTxt}</td>
+                <td style="font-family: var(--font-mono); font-weight: 600;">${rawSumTxt}</td>
+                <td><span class="dim-tag tag-y${i+1}">${finalVal}</span></td>
+            </tr>`;
+        }
+
+        decompTableBody.innerHTML = tableHtml;
+    }
+
+    // Canvas Visualizer setup and rendering
+    function renderVisualizer() {
+        if (!vizCanvas || !ctx) return;
+
+        // Handle Retina DPI scaling
+        const rect = vizCanvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const w = rect.width || 940;
+        const h = 420;
+
+        if (vizCanvas.width !== Math.round(w * dpr) || vizCanvas.height !== Math.round(h * dpr)) {
+            vizCanvas.width = Math.round(w * dpr);
+            vizCanvas.height = Math.round(h * dpr);
+        }
+
+        ctx.save();
+        ctx.resetTransform ? ctx.resetTransform() : ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+
+        ctx.clearRect(0, 0, w, h);
+
+        if (state.vizTab === 'radar') {
+            drawRadarChart(ctx, w, h);
+        } else if (state.vizTab === 'network') {
+            drawNetworkDiagram(ctx, w, h);
+        } else if (state.vizTab === 'breakdown') {
+            drawBreakdownChart(ctx, w, h);
+        }
+
+        ctx.restore();
+    }
+
+    // 1. Radar Chart (Biểu đồ mạng nhện 6 chiều)
+    function drawRadarChart(c, w, h) {
+        const cx = w / 2;
+        const cy = h / 2 + 10;
+        const maxR = Math.min(cx - 100, cy - 50, 150);
+        const activeRes = state.allPredictions[state.activeModel];
+        if (!activeRes) return;
+
+        const compareRes = (state.compareModel !== 'none' && state.allPredictions[state.compareModel]) ? state.allPredictions[state.compareModel] : null;
+
+        // Draw concentric rings
+        const rings = [28, 56, 84, 112, 140];
+        c.strokeStyle = '#e2e8f0';
+        c.lineWidth = 1;
+        c.setLineDash([4, 4]);
+
+        rings.forEach(val => {
+            const r = (val / 140) * maxR;
+            c.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = -Math.PI / 2 + (i * 2 * Math.PI) / 6;
+                const x = cx + r * Math.cos(angle);
+                const y = cy + r * Math.sin(angle);
+                if (i === 0) c.moveTo(x, y);
+                else c.lineTo(x, y);
+            }
+            c.closePath();
+            c.stroke();
+
+            // Ring scale text
+            c.fillStyle = '#94a3b8';
+            c.font = '10px JetBrains Mono, monospace';
+            c.textAlign = 'left';
+            c.fillText(val.toString(), cx + 4, cy - r + 11);
+        });
+        c.setLineDash([]);
+
+        // Draw 6 radial spokes
+        for (let i = 0; i < 6; i++) {
+            const angle = -Math.PI / 2 + (i * 2 * Math.PI) / 6;
+            const x = cx + maxR * Math.cos(angle);
+            const y = cy + maxR * Math.sin(angle);
+
+            c.strokeStyle = '#cbd5e1';
+            c.lineWidth = 1.2;
+            c.beginPath();
+            c.moveTo(cx, cy);
+            c.lineTo(x, y);
+            c.stroke();
+
+            // Label around perimeter
+            const labelDist = maxR + 24;
+            const lx = cx + labelDist * Math.cos(angle);
+            const ly = cy + labelDist * Math.sin(angle);
+
+            c.font = 'bold 12px Inter, sans-serif';
+            c.fillStyle = OUTPUT_COLORS[i];
+            c.textAlign = Math.abs(Math.cos(angle)) < 0.1 ? 'center' : (Math.cos(angle) > 0 ? 'left' : 'right');
+            c.textBaseline = 'middle';
+            c.fillText(OUTPUT_LABELS[i], lx, ly);
+        }
+
+        // Draw Compare Model Polygon (if selected)
+        if (compareRes) {
+            c.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const val = compareRes.y[i];
+                const r = (val / 140) * maxR;
+                const angle = -Math.PI / 2 + (i * 2 * Math.PI) / 6;
+                const x = cx + r * Math.cos(angle);
+                const y = cy + r * Math.sin(angle);
+                if (i === 0) c.moveTo(x, y);
+                else c.lineTo(x, y);
+            }
+            c.closePath();
+            c.fillStyle = 'rgba(249, 115, 22, 0.14)';
+            c.fill();
+            c.strokeStyle = '#f97316';
+            c.lineWidth = 2;
+            c.setLineDash([5, 4]);
+            c.stroke();
+            c.setLineDash([]);
+
+            // Draw vertex points
+            for (let i = 0; i < 6; i++) {
+                const val = compareRes.y[i];
+                const r = (val / 140) * maxR;
+                const angle = -Math.PI / 2 + (i * 2 * Math.PI) / 6;
+                const x = cx + r * Math.cos(angle);
+                const y = cy + r * Math.sin(angle);
+                c.fillStyle = '#f97316';
+                c.beginPath();
+                c.arc(x, y, 4, 0, Math.PI * 2);
+                c.fill();
+            }
+        }
+
+        // Draw Active Model Polygon
+        c.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const val = activeRes.y[i];
+            const r = (val / 140) * maxR;
+            const angle = -Math.PI / 2 + (i * 2 * Math.PI) / 6;
+            const x = cx + r * Math.cos(angle);
+            const y = cy + r * Math.sin(angle);
+            if (i === 0) c.moveTo(x, y);
+            else c.lineTo(x, y);
+        }
+        c.closePath();
+        c.fillStyle = 'rgba(37, 99, 235, 0.22)';
+        c.fill();
+        c.strokeStyle = '#2563eb';
+        c.lineWidth = 2.8;
+        c.stroke();
+
+        // Draw vertex nodes and live value badges
+        for (let i = 0; i < 6; i++) {
+            const val = activeRes.y[i];
+            const r = (val / 140) * maxR;
+            const angle = -Math.PI / 2 + (i * 2 * Math.PI) / 6;
+            const x = cx + r * Math.cos(angle);
+            const y = cy + r * Math.sin(angle);
+
+            // Node halo
+            c.fillStyle = '#ffffff';
+            c.beginPath();
+            c.arc(x, y, 6, 0, Math.PI * 2);
+            c.fill();
+            c.strokeStyle = OUTPUT_COLORS[i];
+            c.lineWidth = 3;
+            c.stroke();
+
+            // Value badge tag
+            const badgeTxt = val.toFixed(2);
+            c.font = 'bold 11px JetBrains Mono, monospace';
+            const badgeW = c.measureText(badgeTxt).width + 8;
+            const badgeH = 18;
+            const bx = x + Math.cos(angle) * 14 - (Math.cos(angle) < 0 ? badgeW : 0);
+            const by = y + Math.sin(angle) * 14 - badgeH / 2;
+
+            c.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            c.beginPath();
+            c.roundRect ? c.roundRect(bx, by, badgeW, badgeH, 4) : c.rect(bx, by, badgeW, badgeH);
+            c.fill();
+
+            c.fillStyle = '#ffffff';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.fillText(badgeTxt, bx + badgeW / 2, by + badgeH / 2);
+        }
+
+        // Top Legend
+        c.textAlign = 'left';
+        c.font = 'bold 11px Inter, sans-serif';
+
+        // Active model legend
+        c.fillStyle = '#2563eb';
+        c.fillRect(20, 20, 16, 4);
+        c.fillStyle = '#0f172a';
+        const meta = MODEL_META.find(m => m.id === state.activeModel) || MODEL_META[0];
+        c.fillText(`${meta.name} (Đang chọn)`, 44, 24);
+
+        if (compareRes) {
+            c.fillStyle = '#f97316';
+            c.fillRect(20, 40, 16, 4);
+            c.fillStyle = '#0f172a';
+            const cMeta = MODEL_META.find(m => m.id === state.compareModel) || { name: state.compareModel };
+            c.fillText(`${cMeta.name} (So sánh đối chứng)`, 44, 44);
+        }
+    }
+
+    // 2. Neural Signal Flow & Computation Architecture Graph
+    function drawNetworkDiagram(c, w, h) {
+        c.clearRect(0, 0, w, h);
+        const activeRes = state.allPredictions[state.activeModel];
+        if (!activeRes) return;
+
+        const leftX = 100;
+        const midX1 = w * 0.35;
+        const midX2 = w * 0.52;
+        const midX3 = w * 0.68;
+        const rightX = w - 140;
+
+        // 1. Draw Inputs on the left
+        const inY = [h * 0.36, h * 0.64];
+        const inLabels = ['x₁ (Cột 7)', 'x₂ (Cột 8)'];
+        const inVals = [`${state.x1.toFixed(2)} dB`, `${state.x2.toFixed(2)} dB`];
+
+        // 2. Draw Outputs on the right
+        const outY = [];
+        const outH = h - 60;
+        for (let i = 0; i < 6; i++) {
+            outY.push(35 + (i * outH) / 5);
+        }
+
+        // Synapses & Connections
+        c.lineWidth = 1;
+        state.animTick = (state.animTick + 0.04) % 1;
+
+        // Draw connections from input to mid
+        inY.forEach((iy, inIdx) => {
+            outY.forEach((oy, outIdx) => {
+                c.strokeStyle = 'rgba(226, 232, 240, 0.7)';
+                c.beginPath();
+                c.moveTo(leftX + 40, iy);
+                c.bezierCurveTo(midX1, iy, midX3, oy, rightX - 40, oy);
+                c.stroke();
+
+                // Animated signal pulse particle
+                const t = (state.animTick + (inIdx * 0.3) + (outIdx * 0.15)) % 1;
+                const px = Math.pow(1 - t, 3) * (leftX + 40) +
+                           3 * Math.pow(1 - t, 2) * t * midX1 +
+                           3 * (1 - t) * Math.pow(t, 2) * midX3 +
+                           Math.pow(t, 3) * (rightX - 40);
+                const py = Math.pow(1 - t, 3) * iy +
+                           3 * Math.pow(1 - t, 2) * t * iy +
+                           3 * (1 - t) * Math.pow(t, 2) * oy +
+                           Math.pow(t, 3) * oy;
+
+                c.fillStyle = inIdx === 0 ? 'rgba(37, 99, 235, 0.75)' : 'rgba(8, 145, 178, 0.75)';
+                c.beginPath();
+                c.arc(px, py, 2.5, 0, Math.PI * 2);
+                c.fill();
+            });
+        });
+
+        // Middle Processing Architecture Block
+        const midBlockW = 180;
+        const midBlockH = 260;
+        const midBlockX = w * 0.44 - midBlockW / 2;
+        const midBlockY = h / 2 - midBlockH / 2;
+
+        c.fillStyle = '#f8fafc';
+        c.strokeStyle = '#cbd5e1';
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.roundRect ? c.roundRect(midBlockX, midBlockY, midBlockW, midBlockH, 12) : c.rect(midBlockX, midBlockY, midBlockW, midBlockH);
+        c.fill();
+        c.stroke();
+
+        // Model internal representation inside box
+        c.fillStyle = '#0f172a';
+        c.font = 'bold 12px Inter, sans-serif';
+        c.textAlign = 'center';
+        const meta = MODEL_META.find(m => m.id === state.activeModel) || MODEL_META[0];
+        c.fillText(meta.name, midBlockX + midBlockW / 2, midBlockY + 28);
+
+        c.font = '10px JetBrains Mono, monospace';
+        c.fillStyle = '#64748b';
+        if (state.activeModel === 'NeuralNetwork') {
+            c.fillText('Tầng 1: 64 ReLU', midBlockX + midBlockW / 2, midBlockY + 68);
+            c.fillText('Tầng 2: 64 ReLU', midBlockX + midBlockW / 2, midBlockY + 98);
+            c.fillText('Tầng 3: 32 ReLU', midBlockX + midBlockW / 2, midBlockY + 128);
+            c.fillText('Tầng ra: 6 Linear', midBlockX + midBlockW / 2, midBlockY + 158);
+            c.fillText('Mất mát MSE Adam', midBlockX + midBlockW / 2, midBlockY + 195);
+        } else if (state.activeModel === 'SVM') {
+            c.fillText('Siêu phẳng W·x + b', midBlockX + midBlockW / 2, midBlockY + 70);
+            c.fillText('Hàm mất mát ε-L2', midBlockX + midBlockW / 2, midBlockY + 105);
+            c.fillText('Khắc phục quá khớp', midBlockX + midBlockW / 2, midBlockY + 140);
+            c.fillText('6 vector lề cực đại', midBlockX + midBlockW / 2, midBlockY + 175);
+            c.fillText('Xuất số thực liên tục', midBlockX + midBlockW / 2, midBlockY + 210);
+        } else if (state.activeModel === 'Ensemble') {
+            c.fillText('Nhánh 1: 40% MLP', midBlockX + midBlockW / 2, midBlockY + 70);
+            c.fillText('Nhánh 2: 35% SVM', midBlockX + midBlockW / 2, midBlockY + 105);
+            c.fillText('Nhánh 3: 25% Poly', midBlockX + midBlockW / 2, midBlockY + 140);
+            c.fillText('Bộ cộng trọng số Σ', midBlockX + midBlockW / 2, midBlockY + 180);
+            c.fillText('Tối ưu hóa đa mô hình', midBlockX + midBlockW / 2, midBlockY + 215);
+        } else {
+            c.fillText('Ánh xạ affine ma trận', midBlockX + midBlockW / 2, midBlockY + 80);
+            c.fillText('y = W · x + b', midBlockX + midBlockW / 2, midBlockY + 120);
+            c.fillText('6 Chiều độc lập', midBlockX + midBlockW / 2, midBlockY + 160);
+            c.fillText('Không gian số thực', midBlockX + midBlockW / 2, midBlockY + 200);
+        }
+
+        // Draw Input nodes
+        inY.forEach((iy, i) => {
+            c.fillStyle = '#ffffff';
+            c.strokeStyle = i === 0 ? '#2563eb' : '#0891b2';
+            c.lineWidth = 2.5;
+            c.beginPath();
+            c.arc(leftX, iy, 22, 0, Math.PI * 2);
+            c.fill();
+            c.stroke();
+
+            c.fillStyle = i === 0 ? '#2563eb' : '#0891b2';
+            c.font = 'bold 12px Inter, sans-serif';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.fillText(`x${i+1}`, leftX, iy - 6);
+
+            c.font = '10px JetBrains Mono, monospace';
+            c.fillStyle = '#475569';
+            c.fillText(inVals[i], leftX, iy + 9);
+
+            c.font = '11px Inter, sans-serif';
+            c.fillStyle = '#0f172a';
+            c.textAlign = 'right';
+            c.fillText(inLabels[i], leftX - 30, iy);
+        });
+
+        // Draw Output nodes
+        outY.forEach((oy, i) => {
+            const val = activeRes.y[i].toFixed(2);
+            c.fillStyle = '#ffffff';
+            c.strokeStyle = OUTPUT_COLORS[i];
+            c.lineWidth = 2.5;
+            c.beginPath();
+            c.arc(rightX, oy, 16, 0, Math.PI * 2);
+            c.fill();
+            c.stroke();
+
+            c.fillStyle = OUTPUT_COLORS[i];
+            c.font = 'bold 10px Inter, sans-serif';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.fillText(`y${i+1}`, rightX, oy);
+
+            // Output Tag with value
+            c.textAlign = 'left';
+            c.font = 'bold 12px JetBrains Mono, monospace';
+            c.fillStyle = '#0f172a';
+            c.fillText(val, rightX + 26, oy);
+
+            c.font = '10px Inter, sans-serif';
+            c.fillStyle = '#64748b';
+            c.fillText(OUTPUT_NAMES[i], rightX + 80, oy);
+        });
+    }
+
+    // 3. Impact Breakdown Chart
+    function drawBreakdownChart(c, w, h) {
+        c.clearRect(0, 0, w, h);
+        const activeRes = state.allPredictions[state.activeModel];
+        if (!activeRes) return;
+
+        const startY = 40;
+        const rowH = (h - 60) / 6;
+        const leftMargin = 120;
+        const barMaxW = w - leftMargin - 140;
+
+        // Top Legend
+        c.font = 'bold 11px Inter, sans-serif';
+        c.textAlign = 'left';
+
+        c.fillStyle = '#2563eb';
+        c.fillRect(leftMargin, 15, 12, 12);
+        c.fillStyle = '#334155';
+        c.fillText('Đóng góp x₁', leftMargin + 18, 25);
+
+        c.fillStyle = '#0891b2';
+        c.fillRect(leftMargin + 120, 15, 12, 12);
+        c.fillStyle = '#334155';
+        c.fillText('Đóng góp x₂', leftMargin + 138, 25);
+
+        c.fillStyle = '#8b5cf6';
+        c.fillRect(leftMargin + 240, 15, 12, 12);
+        c.fillStyle = '#334155';
+        c.fillText('Hệ số gốc (Bias)', leftMargin + 258, 25);
+
+        c.fillStyle = '#059669';
+        c.fillRect(leftMargin + 370, 15, 12, 12);
+        c.fillStyle = '#334155';
+        c.fillText('Giá trị dự đoán cuối', leftMargin + 388, 25);
+
+        const x1 = state.x1;
+        const x2 = state.x2;
+
+        for (let i = 0; i < 6; i++) {
+            const yPos = startY + i * rowH + 16;
+            const finalVal = activeRes.y[i];
+
+            // Row Label
+            c.fillStyle = OUTPUT_COLORS[i];
+            c.font = 'bold 12px Inter, sans-serif';
+            c.textAlign = 'right';
+            c.fillText(OUTPUT_LABELS[i], leftMargin - 15, yPos + 12);
+
+            // Background bar track
+            c.fillStyle = '#f1f5f9';
+            c.beginPath();
+            c.roundRect ? c.roundRect(leftMargin, yPos, barMaxW, 16, 4) : c.rect(leftMargin, yPos, barMaxW, 16);
+            c.fill();
+
+            // Compute components
+            let w1 = 1, w2 = 1, b = 60;
+            if (models.SVM && models.SVM.coef) {
+                w1 = models.SVM.coef[i][0];
+                w2 = models.SVM.coef[i][1];
+                b = models.SVM.intercept[i];
+            }
+            const c1 = Math.abs(w1 * x1);
+            const c2 = Math.abs(w2 * x2);
+            const cb = Math.abs(b);
+            const sumC = c1 + c2 + cb || 1;
+
+            const finalW = (finalVal / 140) * barMaxW;
+
+            // Fill Bar with final value
+            c.fillStyle = OUTPUT_COLORS[i];
+            c.beginPath();
+            c.roundRect ? c.roundRect(leftMargin, yPos, Math.max(8, finalW), 16, 4) : c.rect(leftMargin, yPos, Math.max(8, finalW), 16);
+            c.fill();
+
+            // Final value text
+            c.font = 'bold 12px JetBrains Mono, monospace';
+            c.fillStyle = '#0f172a';
+            c.textAlign = 'left';
+            c.fillText(finalVal.toFixed(2), leftMargin + barMaxW + 15, yPos + 13);
+        }
+    }
+
+    // Switch Visualizer Tab
+    function switchVizTab(tabName) {
+        state.vizTab = tabName;
+        [tabRadar, tabNetwork, tabBreakdown].forEach(btn => {
+            if (btn) btn.classList.remove('active');
+        });
+
+        if (tabName === 'radar') {
+            if (tabRadar) tabRadar.classList.add('active');
+            if (vizDynamicTitle) vizDynamicTitle.textContent = 'Biểu Đồ Mạng Nhện Không Gian 6 Chiều (Radar View)';
+            if (vizFooterHint) vizFooterHint.textContent = '💡 Kéo thanh trượt x₁, x₂ ở Bước 1 để quan sát đa giác 6 chiều và luồng tín hiệu biến đổi mượt mà theo thời gian thực';
+            if (document.getElementById('vizCompareWrap')) document.getElementById('vizCompareWrap').style.display = 'inline-flex';
+        } else if (tabName === 'network') {
+            if (tabNetwork) tabNetwork.classList.add('active');
+            if (vizDynamicTitle) vizDynamicTitle.textContent = 'Sơ Đồ Luồng Tín Hiệu & Mạng Nơ-ron (Signal Propagation)';
+            if (vizFooterHint) vizFooterHint.textContent = '💡 Hạt xung tín hiệu chuyển động mô phỏng quá trình lan truyền tiến (Forward Pass) từ 2 đầu vào qua tầng ẩn sang 6 đầu ra';
+            if (document.getElementById('vizCompareWrap')) document.getElementById('vizCompareWrap').style.display = 'none';
+        } else if (tabName === 'breakdown') {
+            if (tabBreakdown) tabBreakdown.classList.add('active');
+            if (vizDynamicTitle) vizDynamicTitle.textContent = 'Phân Tích Thành Phần Đóng Góp & Trọng Số (Feature Impact)';
+            if (vizFooterHint) vizFooterHint.textContent = '💡 Thể hiện tỷ trọng tác động của x₁ (f1) và x₂ (f2) cùng hệ số tự do lên từng biến đầu ra';
+            if (document.getElementById('vizCompareWrap')) document.getElementById('vizCompareWrap').style.display = 'none';
+        }
+
+        renderVisualizer();
+    }
+
     // Full UI Update
     function updateUI() {
         x1Badge.textContent = state.x1.toFixed(2);
@@ -553,6 +1198,8 @@ document.addEventListener('DOMContentLoaded', () => {
         state.allPredictions = computeAllModels(state.x1, state.x2);
         renderComparisonTable(state.allPredictions);
         updateActiveModelDetails(state.allPredictions);
+        updatePipelineAndDecomp();
+        renderVisualizer();
     }
 
     // Event listeners
@@ -651,6 +1298,31 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    });
+
+    // Visualizer Tab Listeners
+    if (tabRadar) tabRadar.addEventListener('click', () => switchVizTab('radar'));
+    if (tabNetwork) tabNetwork.addEventListener('click', () => switchVizTab('network'));
+    if (tabBreakdown) tabBreakdown.addEventListener('click', () => switchVizTab('breakdown'));
+    if (vizCompareSelect) {
+        vizCompareSelect.addEventListener('change', (e) => {
+            state.compareModel = e.target.value;
+            renderVisualizer();
+        });
+    }
+
+    // Animation Loop for live signal particle propagation
+    function animLoop() {
+        if (state.vizTab === 'network') {
+            renderVisualizer();
+        }
+        requestAnimationFrame(animLoop);
+    }
+    requestAnimationFrame(animLoop);
+
+    // Resize handling for Canvas
+    window.addEventListener('resize', () => {
+        renderVisualizer();
     });
 
     // Initial render

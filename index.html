@@ -329,6 +329,174 @@
                     <pre class="formula-pre" id="formulaCode">Đang tải công thức tính toán...</pre>
                 </div>
             </section>
+
+            <!-- 4. Computation Mechanism & Live Visualizer Section -->
+            <section class="card-section visualizer-section">
+                <div class="section-heading">
+                    <div class="heading-left">
+                        <span class="step-num step-num-cyan">4</span>
+                        <div>
+                            <h2>Cơ Chế Tính Toán & Trực Quan Hóa Quá Trình Dự Đoán</h2>
+                            <p class="section-sub">Khám phá cách thuật toán biến đổi 2 biến đầu vào thành 6 biến đầu ra số thực qua biểu đồ trực quan động</p>
+                        </div>
+                    </div>
+
+                    <!-- Visualizer Tabs Header -->
+                    <div class="viz-tab-group">
+                        <button class="viz-tab active" data-tab="radar" id="tabRadar">
+                            <span class="viz-tab-icon">🌐</span>
+                            <span>Mạng Nhện 6 Chiều</span>
+                        </button>
+                        <button class="viz-tab" data-tab="network" id="tabNetwork">
+                            <span class="viz-tab-icon">🧠</span>
+                            <span>Sơ Đồ Luồng Tín Hiệu</span>
+                        </button>
+                        <button class="viz-tab" data-tab="breakdown" id="tabBreakdown">
+                            <span class="viz-tab-icon">📊</span>
+                            <span>Phân Tích Thành Phần</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interactive Canvas Graphic Area -->
+                <div class="viz-card">
+                    <div class="viz-header-bar">
+                        <div class="viz-title-wrap">
+                            <span class="viz-badge-live">LIVE 60FPS</span>
+                            <span class="viz-dynamic-title" id="vizDynamicTitle">Biểu Đồ Mạng Nhện Không Gian 6 Chiều (Radar View)</span>
+                        </div>
+                        <div class="viz-controls">
+                            <label class="viz-compare-label" id="vizCompareWrap">
+                                <span class="viz-control-text">So sánh với:</span>
+                                <select id="vizCompareSelect" class="viz-select">
+                                    <option value="none">Không so sánh</option>
+                                    <option value="SVM">Support Vector Machine (SVR)</option>
+                                    <option value="NeuralNetwork">Mạng Nơ-ron (MLP)</option>
+                                    <option value="PolynomialRegression">Hồi quy Đa thức bậc 2</option>
+                                    <option value="LinearRegression">Hồi quy Tuyến tính</option>
+                                    <option value="KNN">KNN Nội suy (k=3)</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="viz-canvas-wrapper">
+                        <canvas id="vizCanvas" width="940" height="420"></canvas>
+                    </div>
+
+                    <div class="viz-footer-hint" id="vizFooterHint">
+                        💡 Kéo thanh trượt x₁, x₂ ở Bước 1 để quan sát đa giác 6 chiều và luồng tín hiệu biến đổi mượt mà theo thời gian thực
+                    </div>
+                </div>
+
+                <!-- 4-Step Mathematical Pipeline -->
+                <div class="pipeline-section">
+                    <div class="pipeline-heading">
+                        <div class="badge-mini">KIẾN TRÚC TÍNH TOÁN</div>
+                        <h3>Quy Trình 4 Bước Biến Đổi Toán Học (Data Pipeline)</h3>
+                        <p class="pipeline-sub">Chi tiết quá trình tính toán từ 2 giá trị đầu vào vật lý đến 6 thông số đầu ra liên tục</p>
+                    </div>
+
+                    <div class="pipeline-grid">
+                        <!-- Step 1 Card -->
+                        <div class="pipeline-card">
+                            <div class="pipeline-card-top">
+                                <span class="pipeline-step-badge">Bước 1</span>
+                                <span class="pipeline-step-name">Chuẩn Hóa Z-Score</span>
+                            </div>
+                            <div class="pipeline-body">
+                                <p class="pipeline-desc">2 tín hiệu dB được chuẩn hóa Z-Score để đưa về cùng thang độ phân phối:</p>
+                                <div class="pipeline-math-box" id="pipeStep1Math">
+                                    z = (x - μ) / σ
+                                </div>
+                                <div class="pipeline-values" id="pipeStep1Vals">
+                                    <span>z₁: <strong id="pipeZ1">-5.43</strong></span>
+                                    <span>z₂: <strong id="pipeZ2">-3.11</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 Card -->
+                        <div class="pipeline-card">
+                            <div class="pipeline-card-top">
+                                <span class="pipeline-step-badge">Bước 2</span>
+                                <span class="pipeline-step-name" id="pipeStep2Name">Xử Lý Lõi Thuật Toán</span>
+                            </div>
+                            <div class="pipeline-body">
+                                <p class="pipeline-desc" id="pipeStep2Desc">Tính toán các hàm truyền toán học giải tích hoặc nơ-ron:</p>
+                                <div class="pipeline-math-box" id="pipeStep2Math">
+                                    y_i = w_{i1}·x₁ + w_{i2}·x₂ + b_i
+                                </div>
+                                <div class="pipeline-values" id="pipeStep2Vals">
+                                    <span id="pipeModelType">Hồi quy giải tích siêu phẳng</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 Card -->
+                        <div class="pipeline-card">
+                            <div class="pipeline-card-top">
+                                <span class="pipeline-step-badge">Bước 3</span>
+                                <span class="pipeline-step-name">Giải Chuẩn Hóa Số Thực</span>
+                            </div>
+                            <div class="pipeline-body">
+                                <p class="pipeline-desc">Chuyển về không gian hình học thực tế, giữ nguyên số lẻ / số thập phân:</p>
+                                <div class="pipeline-math-box">
+                                    y = clamp(y_calc, 5.0, 140.0)
+                                </div>
+                                <div class="pipeline-values">
+                                    <span>Độ mịn: <strong>2 chữ số thập phân</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 Card -->
+                        <div class="pipeline-card">
+                            <div class="pipeline-card-top">
+                                <span class="pipeline-step-badge">Bước 4</span>
+                                <span class="pipeline-step-name">Kiểm Thử Ngược Digital Twin</span>
+                            </div>
+                            <div class="pipeline-body">
+                                <p class="pipeline-desc">Bộ mô phỏng ngược đưa 6 biến về lại x₁ˢⁱᵐ, x₂ˢⁱᵐ để thẩm định độ tin cậy:</p>
+                                <div class="pipeline-math-box" id="pipeStep4Math">
+                                    Δx = (|x₁ - x₁ˢⁱᵐ| + |x₂ - x₂ˢⁱᵐ|) / 2
+                                </div>
+                                <div class="pipeline-values" id="pipeStep4Vals">
+                                    <span>Độ lệch: <strong id="pipeDelta">±0.14 dB</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dimension-by-Dimension Breakdown Table -->
+                <div class="decomp-section">
+                    <div class="decomp-heading">
+                        <div class="badge-mini">BẢNG PHÂN RÃ HỆ SỐ</div>
+                        <h3>Bảng Chi Tiết Thành Phần Toán Học Cho 6 Biến Đầu Ra (Mô hình: <span id="decompModelName" class="highlight-title">Ensemble</span>)</h3>
+                        <p class="decomp-sub">Xem chính xác trọng số của x₁, x₂ và hệ số tự do đóng góp vào từng số thập phân</p>
+                    </div>
+
+                    <div class="table-container decomp-table-wrap">
+                        <table class="comparison-table decomp-table">
+                            <thead>
+                                <tr>
+                                    <th>Biến đầu ra</th>
+                                    <th>Công thức toán học</th>
+                                    <th>Đóng góp từ x₁</th>
+                                    <th>Đóng góp từ x₂</th>
+                                    <th>Hệ số tự do (Bias)</th>
+                                    <th>Giá trị tính toán</th>
+                                    <th>Kết quả cuối cùng</th>
+                                </tr>
+                            </thead>
+                            <tbody id="decompTableBody">
+                                <!-- Populated dynamically via app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <!-- Footer -->

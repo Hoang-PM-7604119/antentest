@@ -222,6 +222,11 @@ body {
     box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
 }
 
+.step-num-cyan {
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    box-shadow: 0 4px 10px rgba(6, 182, 212, 0.3);
+}
+
 .heading-left h2 {
     font-size: 1.25rem;
     font-weight: 700;
@@ -981,6 +986,317 @@ body {
 }
 
 /* ==========================================================================
+   4. Computation Mechanism & Live Visualizer Styles
+   ========================================================================== */
+
+.visualizer-section {
+    background: #ffffff;
+}
+
+.viz-tab-group {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: var(--radius-md);
+    gap: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.viz-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    user-select: none;
+}
+
+.viz-tab:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.viz-tab.active {
+    background: #ffffff;
+    color: var(--primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.viz-tab-icon {
+    font-size: 0.95rem;
+}
+
+/* Visualizer Card */
+.viz-card {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-sm);
+}
+
+.viz-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.viz-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.viz-badge-live {
+    font-size: 0.65rem;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    padding: 2px 7px;
+    border-radius: 9999px;
+    letter-spacing: 0.04em;
+    animation: livePulse 2s infinite ease-in-out;
+}
+
+@keyframes livePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.viz-dynamic-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.viz-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.viz-compare-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.viz-select {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: #ffffff;
+    color: var(--text-main);
+    cursor: pointer;
+    outline: none;
+    transition: var(--transition);
+}
+
+.viz-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.viz-canvas-wrapper {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+}
+
+#vizCanvas {
+    width: 100%;
+    height: auto;
+    max-height: 440px;
+    display: block;
+}
+
+.viz-footer-hint {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-align: center;
+    font-style: italic;
+}
+
+/* 4-Step Pipeline */
+.pipeline-section {
+    margin-top: 32px;
+    margin-bottom: 32px;
+}
+
+.pipeline-heading, .decomp-heading {
+    margin-bottom: 16px;
+}
+
+.badge-mini {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.pipeline-heading h3, .decomp-heading h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.01em;
+}
+
+.pipeline-sub, .decomp-sub {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
+.pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.pipeline-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.pipeline-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: #cbd5e1;
+}
+
+.pipeline-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.pipeline-step-badge {
+    font-size: 0.68rem;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.pipeline-step-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.pipeline-desc {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+    margin-bottom: 10px;
+}
+
+.pipeline-math-box {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+
+.pipeline-values {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.pipeline-values strong {
+    color: var(--text-main);
+}
+
+/* Decomposition Math Table */
+.decomp-section {
+    margin-top: 32px;
+}
+
+.decomp-table-wrap {
+    margin-top: 12px;
+}
+
+.decomp-table th {
+    font-size: 0.74rem;
+    padding: 10px 12px;
+}
+
+.decomp-table td {
+    font-size: 0.82rem;
+    padding: 10px 12px;
+}
+
+.decomp-math-cell {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-size: 0.76rem;
+}
+
+.decomp-num-pos {
+    color: #059669;
+    font-weight: 600;
+}
+
+.decomp-num-neg {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* ==========================================================================
    Footer
    ========================================================================== */
 
@@ -1029,6 +1345,10 @@ body {
     .outputs-grid {
         grid-template-columns: repeat(3, 1fr);
     }
+
+    .pipeline-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @media (max-width: 860px) {
@@ -1051,11 +1371,31 @@ body {
     .verif-divider {
         display: none;
     }
+
+    .viz-header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 @media (max-width: 600px) {
     .outputs-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pipeline-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .viz-tab-group {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .viz-tab {
+        flex: 1 1 auto;
+        justify-content: center;
     }
 }
 
